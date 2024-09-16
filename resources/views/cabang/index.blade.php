@@ -7,7 +7,7 @@
           <!-- Page pre-title -->
           
           <h2 class="page-title">
-            Data Pegawai
+            Data Kantor
           </h2>
         </div>
         </div>
@@ -35,7 +35,7 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <a href="#" class="btn btn-primary" id="btnTambahKaryawan">
+                                <a href="#" class="btn btn-primary" id="btnTambahCabang">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
                                     height="24"  viewBox="0 0 24 24"  fill="none"  
                                     stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  
@@ -51,23 +51,11 @@
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                            <form action="/karyawan" method="GET">
+                            <form action="/cabang" method="GET">
                             <div class="row">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <input type="text" name= "nama_karyawan" id="nama_karyawan" 
-                                        class="form control" placeholder="Nama Pegawai" 
-                                        value="{{ Request('nama_karyawan') }}">
-                                    </div>
-                                </div>
-                                
-                                <div class="col-4">
-                                    <select name="kode_cabang" id="kode_cabang" class="form-select">
-                                        <option value="">Kantor</option>
-                                        @foreach ($cabang as $d)
-                                            <option {{ Request('kode_cabang') == $d->kode_cabang ? 'selected' :'' }}
-                                                value="{{ $d->kode_cabang }}">{{ $d->nama_cabang }}</option>
-                                        @endforeach
+                                <div class="col-10">
+                                    <select name="kode-cabang" class="form-select" id="">
+                                        <option value="Semua cabang"></option>
                                     </select>
                                 </div>
                             <div class="col-2">
@@ -92,114 +80,81 @@
                 </div>
                 <div class="row mt-2">
                     <div class="col-12">
-
-                    </div>
-                </div>
                         <table class="table table-bordered">
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>NIK</th>
-                            <th>Nama</th>
-                            <th>Jabatan</th>
-                            <th>No.HP</th>
-                            <th>Foto</th>
-                            <th>Bidang</th>
-                            <th>Kantor</th>
+                            <th>Kode Kantor</th>
+                            <th>Nama kantor</th>
+                            <th>Lokasi</th>
+                            <th>radius</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($karyawan as $d)
-                        @php
-                            $path = Storage::url('uploads/karyawan/'.$d->foto);
-                        @endphp
-                            <tr>
-                                <td>{{ $loop->iteration + $karyawan->firstItem()-1}}</td>
-                                <td>{{ $d->nik }}</td>
-                                <td>{{ $d->nama_lengkap }}</td>
-                                <td>{{ $d->jabatan }}</td>
-                                <td>{{ $d->no_hp }}</td>
-                                <td>
-                                    @if (empty($d->foto))
-                                        <img src="{{ asset('assets/img/no_photo.jpg') }}" class = "avatar alt="">
-                                    @else
-                                        <img src="{{ $path }}" class = "avatar alt="">
-                                    @endif
-                                </td>
-                                <td>{{ $d->nama_dept }}</td>
-                                <td>{{ $d->kode_cabang }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="#" class="edit btn btn-info btn-sm" nik="{{ $d->nik }}">
-                                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
-                                        height="24"  viewBox="0 0 24 24"  fill="none"  
-                                        stroke="currentColor"  stroke-width="2"  
-                                        stroke-linecap="round"  stroke-linejoin="round"  
-                                        class="icon icon-tabler icons-tabler-outline icon-tabler-edit">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                        <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
-                                        <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" />
-                                        <path d="M16 5l3 3" />
-                                    </svg>
-                                </a>
-                                <a href="/konfigurasi/{{ $d->nik }}/setjamkerja" class="btn btn-success">
+                        @foreach ($cabang as $d)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $d->kode_cabang }}</td>
+                            <td>{{ $d->nama_cabang }}</td>
+                            <td>{{ $d->lokasi_cabang }}</td>
+                            <td>{{ $d->radius_cabang }} Meter</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="#" class="edit btn btn-info btn-sm" kode_cabang="{{ $d->kode_cabang }}">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
                                     height="24"  viewBox="0 0 24 24"  fill="none"  
                                     stroke="currentColor"  stroke-width="2"  
-                                    troke-linecap="round"  stroke-linejoin="round"  
-                                    class="icon icon-tabler icons-tabler-outline icon-tabler-settings">
-                                    path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                    <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 
-                                    2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 
-                                    .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 
-                                    -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.
-                                    724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.
-                                    724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 
-                                    0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
-                                    <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                                    stroke-linecap="round"  stroke-linejoin="round"  
+                                    class="icon icon-tabler icons-tabler-outline icon-tabler-edit">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
+                                    <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 
+                                    -8.415z" />
+                                    <path d="M16 5l3 3" />
                                 </svg>
                             </a>
-                                    <form action="/karyawan/{{ $d->nik }}/delete" method="POST" 
-                                        style="margin-left:5px">
-                                        @csrf
-                                        <a class="btn btn-danger btn-sm delete-confirm">
-                                            <svg  xmlns="http://www.w3.org/2000/svg"  
-                                            width="24"  height="24"  viewBox="0 0 24 24"  
-                                            fill="none"  stroke="currentColor"  
-                                            stroke-width="2"  stroke-linecap="round"  
-                                            stroke-linejoin="round"  
-                                            class="icon icon-tabler icons-tabler-outline icon-tabler-trash">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                            <path d="M4 7l16 0" /><path d="M10 11l0 6" />
-                                            <path d="M14 11l0 6" />
-                                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
-                                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-                                        </svg>
+                                <form action="/cabang/{{ $d->kode_cabang }}/delete" method="POST" 
+                                    style="margin-left:5px">
+                                    @csrf
+                                    <a class="btn btn-danger btn-sm delete-confirm">
+                                        <svg  xmlns="http://www.w3.org/2000/svg"  
+                                        width="24"  height="24"  viewBox="0 0 24 24"  
+                                        fill="none"  stroke="currentColor"  
+                                        stroke-width="2"  stroke-linecap="round"  
+                                        stroke-linejoin="round"  
+                                        class="icon icon-tabler icons-tabler-outline icon-tabler-trash">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                        <path d="M4 7l16 0" />
+                                        <path d="M10 11l0 6" />
+                                        <path d="M14 11l0 6" />
+                                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                                    </svg>
                                     </a>
-                                    </form>
-                                    </div>
-                                </td>
-                            </tr>
+                                </form>
+                                </div>
+                            </td>
+                        </tr>
+                            
                         @endforeach
-                        </tbody>
+                    </tbody>
                     </table>
-                    {{ $karyawan->links('vendor.pagination.bootstrap-5') }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
   </div>
-  <div class="modal modal-blur fade" id="modal-inputkaryawan" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal modal-blur fade" id="modal-inputcabang" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Tambah Data Pegawai</h5>
+          <h5 class="modal-title">Tambah Data Kantor</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form action="/karyawan/store" method="POST" id="frmKaryawan" enctype="multipart/form-data">
+          <form action="/cabang/store" method="POST" id="frmCabang">
             @csrf
             <div class="row">
                 <div class="col-12">
@@ -222,7 +177,8 @@
                           <path d="M19 11l0 2" />
                         </svg>
                         </span>
-                        <input type="text" value="" id="nik" class="form-control" placeholder="NIK" name="nik">
+                        <input type="text" value="" id="kode_cabang" class="form-control" 
+                        placeholder="Kode Kantor" name="kode_cabang">
                       </div>
                 </div>
             </div>
@@ -241,29 +197,8 @@
                           <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
                         </svg>
                         </span>
-                        <input type="text" value="" id="nama_lengkap" class="form-control" name="nama_lengkap" placeholder="Nama Pegawai">
-                      </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="input-icon mb-3">
-                        <span class="input-icon-addon">
-                          <!-- Download SVG icon from http://tabler-icons.io/i/user -->
-                          <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
-                          height="24"  viewBox="0 0 24 24"  fill="none"  
-                          stroke="currentColor"  stroke-width="2"  
-                          stroke-linecap="round"  stroke-linejoin="round"  
-                          class="icon icon-tabler icons-tabler-outline icon-tabler-device-analytics">
-                          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                          <path d="M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z" />
-                          <path d="M7 20l10 0" />
-                          <path d="M9 16l0 4" />
-                          <path d="M15 16l0 4" />
-                          <path d="M8 12l3 -3l2 2l3 -3" />
-                        </svg>
-                        </span>
-                        <input type="text" value="" id="jabatan" class="form-control" name="jabatan" placeholder="Jabatan">
+                        <input type="text" value="" id="nama_cabang" class="form-control" 
+                        name="nama_cabang" placeholder="Nama Kantor">
                       </div>
                 </div>
             </div>
@@ -274,40 +209,40 @@
                           <!-- Download SVG icon from http://tabler-icons.io/i/user -->
                           <svg  xmlns="http://www.w3.org/2000/svg"  
                           width="24"  height="24"  viewBox="0 0 24 24"  
-                          fill="none"  stroke="currentColor"  
-                          stroke-width="2"  stroke-linecap="round"  
-                          stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-phone">
+                          fill="none"  stroke="currentColor"  stroke-width="2"  
+                          stroke-linecap="round"  stroke-linejoin="round"  
+                          class="icon icon-tabler icons-tabler-outline icon-tabler-map-pin-check">
                           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                          <path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" />
+                          <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                          <path d="M11.87 21.48a1.992 1.992 0 0 1 -1.283 
+                          -.58l-4.244 -4.243a8 8 0 1 1 13.355 -3.474" />
+                          <path d="M15 19l2 2l4 -4" />
                         </svg>
                         </span>
-                        <input type="text" value="" id="no_hp" class="form-control" name="no_hp" placeholder="No. HP">
+                        <input type="text" value="" id="lokasi_cabang" class="form-control" 
+                        name="lokasi_cabang" placeholder="Lokasi Kantor">
                       </div>
                 </div>
             </div>
-            <div class="row mt-2">
+            <div class="row">
                 <div class="col-12">
-                        <input type="file" name="foto" class="form-control">
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12">
-                        <select name="kode_dept" id="kode_dept" class="form-select">
-                            <option value="">Bidang</option>
-                            @foreach ($departemen as $d)
-                                <option value="{{ $d->kode_dept }}">{{ $d->nama_dept }}</option>
-                            @endforeach
-                        </select>
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12">
-                        <select name="kode_cabang" id="kode_cabang" class="form-select">
-                            <option value="">Kantor</option>
-                            @foreach ($cabang as $d)
-                                <option value="{{ $d->kode_cabang }}">{{ $d->nama_cabang }}</option>
-                            @endforeach
-                        </select>
+                    <div class="input-icon mb-3">
+                        <span class="input-icon-addon">
+                          <!-- Download SVG icon from http://tabler-icons.io/i/user -->
+                          <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
+                          height="24"  viewBox="0 0 24 24"  fill="none"  
+                          stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  
+                          stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-radar-2">
+                          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                          <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                          <path d="M15.51 15.56a5 5 0 1 0 -3.51 1.44" />
+                          <path d="M18.832 17.86a9 9 0 1 0 -6.832 3.14" />
+                          <path d="M12 12v9" />
+                        </svg>
+                        </span>
+                        <input type="text" value="" id="radius_cabang" class="form-control" 
+                        name="radius_cabang" placeholder="Radius Kantor">
+                      </div>
                 </div>
             </div>
             <div class="row mt-2">
@@ -335,11 +270,11 @@
  </div> 
 
  {{-- //Modal Edit --}}
- <div class="modal modal-blur fade" id="modal-editkaryawan" tabindex="-1" role="dialog" aria-hidden="true">
+ <div class="modal modal-blur fade" id="modal-editcabang" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Edit Data Pegawai</h5>
+          <h5 class="modal-title">Edit Data Kantor</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body" id="loadeditform">
@@ -352,26 +287,26 @@
 @push('myscript')
    <script>
     $(function(){
-        $("#btnTambahKaryawan").click(function(){
-            $("#modal-inputkaryawan").modal("show");
+        $("#btnTambahCabang").click(function(){
+            $("#modal-inputcabang").modal("show");
         });
 
         $(function(){
             $(".edit").click(function(){
-            var nik = $(this).attr('nik');
+            var kode_cabang = $(this).attr('kode_cabang');
             $.ajax({
                 type:'POST',
-                url:'/karyawan/edit',
+                url:'/cabang/edit',
                 cache:false,
                 data:{
                     _token:"{{ csrf_token(); }}",
-                    nik:nik
+                    kode_cabang:kode_cabang
                 },
                 success:function(respond){
                     $("#loadeditform").html(respond);
                 }
             });
-            $("#modal-editkaryawan").modal("show");
+            $("#modal-editcabang").modal("show");
         });
 
         $(".delete-confirm").click(function(e){
@@ -396,62 +331,53 @@
              }
             })
         });
-
-        $("#frmKaryawan").submit(function(){
-            var nik = $("#nik").val();
-            var nama_lengkap = $("#nama_lengkap").val();
-            var jabatan = $("#jabatan").val();
-            var no_hp = $("#no_hp").val();
-            var kode_dept =$("frmKaryawan").find("#kode_dept").val();
-            if(nik==""){
-                //alert('NIK harus diisi');
+        $("#frmCabang").submit(function(){
+            var kode_cabang = $("#kode_cabang").val();
+            var nama_cabang = $("#nama_cabang").val();
+            var lokasi_cabang = $("#lokasi_cabang").val();
+            var radius_cabang = $("#radius_cabang").val();
+            if(kode_cabang==""){
+                //alert('kode harus diisi');
                 Swal.fire({
                     title: 'Warning!',
-                    text: 'NIK harus diisi',
+                    text: 'Kode Kantor harus diisi',
                     icon: 'warning',
                     confirmButtonText: 'Ok'
                     }).then((result)=>{
-                        $("#nik").focus();
+                        $("#kode_cabang").focus();
                     });
                 return false;
-            }else if(nama_lengkap==""){
+            }else if (nama_cabang==""){
+                //alert('nama harus diisi');
                 Swal.fire({
                     title: 'Warning!',
-                    text: 'Nama harus diisi',
+                    text: 'Nama Kantor harus diisi',
                     icon: 'warning',
                     confirmButtonText: 'Ok'
                     }).then((result)=>{
-                        $("#nama_lengkap").focus();
+                        $("#nama_cabang").focus();
                     });
                 return false;
-            }else if(jabatan==""){
+            }else if (lokasi_cabang==""){
+                //alert('lokasi harus diisi');
                 Swal.fire({
                     title: 'Warning!',
-                    text: 'Jabatan harus diisi',
+                    text: 'Lokasi Kantor harus diisi',
                     icon: 'warning',
                     confirmButtonText: 'Ok'
                     }).then((result)=>{
-                        $("#jabatan").focus();
+                        $("#lokasi_cabang").focus();
                     });
                 return false;
-            }else if(no_hp==""){
+            }else if (radius_cabang==""){
+                //alert('radius harus diisi');
                 Swal.fire({
                     title: 'Warning!',
-                    text: 'No. HP harus diisi',
+                    text: 'Radius Kantor harus diisi',
                     icon: 'warning',
                     confirmButtonText: 'Ok'
                     }).then((result)=>{
-                        $("#no_hp").focus();
-                    });
-                return false;
-            }else if(kode_dept==""){
-                Swal.fire({
-                    title: 'Warning!',
-                    text: 'Bidang harus diisi',
-                    icon: 'warning',
-                    confirmButtonText: 'Ok'
-                    }).then((result)=>{
-                        $("#kode_dept").focus();
+                        $("#radius_cabang").focus();
                     });
                 return false;
             }

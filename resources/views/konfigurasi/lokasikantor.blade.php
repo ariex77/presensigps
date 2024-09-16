@@ -47,7 +47,8 @@
                                           <path d="M15 7v13" />
                                         </svg>
                                         </span>
-                                        <input type="text" value="{{ $lok_kantor->lokasi_kantor }}" id="lokasi_kantor" class="form-control" 
+                                        <input type="text" value="{{ $lok_kantor->lokasi_kantor }}" 
+                                        id="lokasi_kantor" class="form-control" 
                                         placeholder="Lokasi Kantor" name="lokasi_kantor">
                                       </div>
                                 </div>
@@ -69,8 +70,8 @@
                                           <path d="M12 12v9" />
                                         </svg>
                                         </span>
-                                        <input type="text" value="{{ $lok_kantor->radius }}" id="radius" class="form-control" 
-                                        placeholder="Radius" name="radius">
+                                        <input type="text" value="{{ $lok_kantor->radius }}" id="radius" 
+                                        class="form-control" placeholder="Radius" name="radius">
                                       </div>
                                 </div>
                             </div>
