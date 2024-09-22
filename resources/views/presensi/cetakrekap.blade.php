@@ -119,14 +119,16 @@
                     }else {
                         $hadir = explode("-",$d->$tgl);
                         $totalhadir += 1;
-                        if($hadir[0] > "07:30:00"){
+                        if($hadir[0] > $d->jam_masuk){
                             $totalterlambat += 1;
                         }
                     }
                     ?>
                     <td>
-                        <span style="color: {{ $hadir [0]>"07:30:00" ? "red": "" }}" > {{ $hadir[0] }}</span><br>
-                        <span style="color: {{ $hadir [1]<"16:00:00" ? "red": "" }}" > {{ $hadir[0] }}</span><br>
+                        <span style="color: {{ $hadir [0]>$d->jam_masuk ? "red": "" }}" > 
+                          {{ !empty($hadir [0] && $d->$tgl) ? $hadir[0] : '-' }}</span><br>
+                        <span style="color: {{ $hadir [1]<$d->jam_pulang ? "red": "" }}" > 
+                          {{ !empty($hadir [1] && $d->$tgl) ? $hadir[1] : '-' }}</span><br>
                     </td>
                     <?php
                 }

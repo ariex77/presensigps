@@ -143,7 +143,7 @@
                                         <path d="M16 5l3 3" />
                                     </svg>
                                 </a>
-                                <a href="/konfigurasi/{{ $d->nik }}/setjamkerja" class="btn btn-success">
+                                <a href="/konfigurasi/{{ $d->nik }}/setjamkerja" class="btn btn-success btn-sm">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
                                     height="24"  viewBox="0 0 24 24"  fill="none"  
                                     stroke="currentColor"  stroke-width="2"  
@@ -160,8 +160,7 @@
                                     <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
                                 </svg>
                             </a>
-                                    <form action="/karyawan/{{ $d->nik }}/delete" method="POST" 
-                                        style="margin-left:5px">
+                                    <form action="/karyawan/{{ $d->nik }}/delete" method="POST" style="margin-left:5px">
                                         @csrf
                                         <a class="btn btn-danger btn-sm delete-confirm">
                                             <svg  xmlns="http://www.w3.org/2000/svg"  
@@ -222,7 +221,7 @@
                           <path d="M19 11l0 2" />
                         </svg>
                         </span>
-                        <input type="text" value="" id="nik" class="form-control" placeholder="NIK" name="nik">
+                        <input type="text" maxlength="18" value="" id="nik" class="form-control" placeholder="NIK" name="nik">
                       </div>
                 </div>
             </div>
@@ -352,6 +351,8 @@
 @push('myscript')
    <script>
     $(function(){
+        $("#nik").mask("000000000000000000");
+        $("#no_hp").mask("000000000000000");
         $("#btnTambahKaryawan").click(function(){
             $("#modal-inputkaryawan").modal("show");
         });

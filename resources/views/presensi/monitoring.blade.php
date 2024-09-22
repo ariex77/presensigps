@@ -52,6 +52,7 @@
                                             <th>NIK</th>
                                             <th>Nama Pegawai</th>
                                             <th>Bidang</th>
+                                            <th>Jadwal</th>
                                             <th>Jam Masuk</th>
                                             <th>Foto</th>
                                             <th>Jam Pulang</th>
