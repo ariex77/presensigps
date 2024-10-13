@@ -176,6 +176,10 @@
                     href="/cabang">
                     Kantor Cabang 
                   </a>
+                  <a class="dropdown-item {{ request()->is(['cuti']) ? 'active' : '' }}" 
+                    href="/cuti">
+                    Cuti 
+                  </a>
                 </div>
               </div>
             </div>

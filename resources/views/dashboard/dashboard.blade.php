@@ -230,7 +230,7 @@
                         }
                     </style>
                     @foreach ($historibulanini as $d)
-                    <div class="card historicard mb-1">
+                    <div class="card">
                         <div class="card-body">
                             <div class="historicontent">
                                 <div class="iconpresensi">
