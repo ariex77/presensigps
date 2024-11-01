@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Crypt;
 use PhpParser\Node\Stmt\Catch_;
 
 class KaryawanController extends Controller
@@ -126,6 +127,19 @@ class KaryawanController extends Controller
             return Redirect::back()->with(['success' => 'Data berhasil dihapus']);
         } else {
             return Redirect::back()->with(['warning' => 'Data gagal dihapus']);
+        }
+    }
+    public function resetpassword($nik)
+    {
+        $nik = Crypt::decrypt($nik);
+        $password = Hash::make('12345');
+        $reset = DB::table('karyawan')->where('nik', $nik)->update([
+            'password' => $password
+        ]);
+        if ($reset) {
+            return Redirect::back()->with(['success' => 'Password berhasil direset']);
+        } else {
+            return Redirect::back()->with(['warning' => 'Password gagal direset']);
         }
     }
 }

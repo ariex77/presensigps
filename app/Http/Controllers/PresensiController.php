@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Karyawan;
 use App\Models\Pengajuanizin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,7 +11,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use PhpParser\Node\Stmt\Return_;
+use PhpParser\Node\Stmt\TryCatch;
 use Symfony\Contracts\Service\Attribute\Required;
+
+use function Laravel\Prompts\select;
 
 class PresensiController extends Controller
 {
@@ -67,7 +71,6 @@ class PresensiController extends Controller
             ->join('jam_kerja', 'konfigurasi_jamkerja.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
             ->where('nik', $nik)->where('hari', $namahari)->first();
 
-
         if ($jamkerja == null) {
             $jamkerja = DB::table('konfigurasi_jk_dept_detail')
                 ->join(
@@ -91,6 +94,7 @@ class PresensiController extends Controller
     public function store(Request $request)
     {
         $nik = Auth::guard('karyawan')->user()->nik;
+        $kode_dept = Auth::guard('karyawan')->user()->kode_dept;
         $kode_cabang = Auth::guard('karyawan')->user()->kode_cabang;
         $tgl_presensi = date("Y-m-d");
         $jam = date("H:i:s");
@@ -112,7 +116,23 @@ class PresensiController extends Controller
             ->join('jam_kerja', 'konfigurasi_jamkerja.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
             ->where('nik', $nik)->where('hari', $namahari)->first();
 
-        $cek = DB::table('presensi')->where('tgl_presensi', $tgl_presensi)->where('nik', $nik)->count();
+        if ($jamkerja == null) {
+            $jamkerja = DB::table('konfigurasi_jk_dept_detail')
+                ->join(
+                    'konfigurasi_jk_dept',
+                    'konfigurasi_jk_dept_detail.kode_jk_dept',
+                    '=',
+                    'konfigurasi_jk_dept.kode_jk_dept'
+                )
+                ->join('jam_kerja', 'konfigurasi_jk_dept_detail.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+                ->where('kode_dept', $kode_dept)
+                ->where('kode_cabang', $kode_cabang)
+                ->where('hari', $namahari)->first();
+        }
+
+        $presensi = DB::table('presensi')->where('tgl_presensi', $tgl_presensi)->where('nik', $nik);
+        $cek = $presensi->count();
+        $datapresensi = $presensi->first();
         if ($cek > 0) {
             $ket = "out";
         } else {
@@ -132,6 +152,8 @@ class PresensiController extends Controller
             if ($cek > 0) {
                 if ($jam < $jamkerja->jam_pulang) {
                     echo "error|Maaf belum waktunya pulang|out";
+                } else if (!empty($datapresensi->jam_out)) {
+                    echo "error|Maaf anda sudah melakukan absen pulang sebelumnya|out";
                 } else {
                     $data_pulang = [
                         'jam_out' => $jam,
@@ -158,7 +180,8 @@ class PresensiController extends Controller
                         'jam_in' => $jam,
                         'foto_in' => $fileName,
                         'lokasi_in' => $lokasi,
-                        'kode_jam_kerja' => $jamkerja->kode_jam_kerja
+                        'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
+                        'status' => 'h'
                     ];
                     $simpan = DB::table('presensi')->insert($data);
                     if ($simpan) {
@@ -199,7 +222,7 @@ class PresensiController extends Controller
         $password = Hash::make($request->password);
         $karyawan = DB::table('karyawan')->where('nik', $nik)->first();
         $request->validate([
-            'foto' => 'required|image|mimes:png,jpg|max:1024'
+            'foto' => 'image|mimes:png,jpg|max:1024'
         ]);
         if ($request->hasFile('foto')) {
             $foto = $nik . "." . $request->file('foto')->getClientOriginalExtension();
@@ -258,19 +281,39 @@ class PresensiController extends Controller
         $nik = Auth::guard('karyawan')->user()->nik;
 
         $histori = DB::table('presensi')
+            ->select('presensi.*', 'keterangan', 'jam_kerja.*', 'doc_sid', 'nama_cuti')
+            ->leftJoin('jam_kerja', 'presensi.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+            ->leftJoin('pengajuan_izin', 'presensi.kode_izin', '=', 'pengajuan_izin.kode_izin')
+            ->leftJoin('master_cuti', 'pengajuan_izin.kode_cuti', '=', 'master_cuti.kode_cuti')
+            ->where('presensi.nik', $nik)
             ->whereRaw('MONTH(tgl_presensi)="' . $bulan . '"')
             ->whereRaw('YEAR(tgl_presensi)="' . $tahun . '"')
-            ->where('nik', $nik)
             ->orderBy('tgl_presensi')
             ->get();
 
         return view('presensi.gethistori', compact('histori'));
     }
-    public function izin()
+    public function izin(Request $request)
     {
         $nik = Auth::guard('karyawan')->user()->nik;
-        $dataizin = DB::table('pengajuan_izin')->where('nik', $nik)->get();
-        return view('presensi.izin', compact('dataizin'));
+
+        if (!empty($request->bulan) && !empty($request->tahun)) {
+            $dataizin = DB::table('pengajuan_izin')
+                ->leftJoin('master_cuti', 'pengajuan_izin.kode_cuti', '=', 'master_cuti.kode_cuti')
+                ->orderBy('tgl_izin_dari', 'desc')
+                ->where('nik', $nik)
+                ->whereRaw('MONTH(tgl_izin_dari)="' . $request->bulan . '"')
+                ->whereRaw('YEAR(tgl_izin_dari)="' . $request->tahun . '"')
+                ->get();
+        } else {
+            $dataizin = DB::table('pengajuan_izin')
+                ->leftJoin('master_cuti', 'pengajuan_izin.kode_cuti', '=', 'master_cuti.kode_cuti')
+                ->orderBy('tgl_izin_dari', 'desc')
+                ->where('nik', $nik)->limit(5)->orderBy('tgl_izin_dari', 'desc')
+                ->get();
+        }
+        $namabulan = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        return view('presensi.izin', compact('dataizin', 'namabulan'));
     }
     public function buatizin()
     {
@@ -313,9 +356,11 @@ class PresensiController extends Controller
                 'jam_masuk',
                 'nama_jam_kerja',
                 'jam_masuk',
-                'jam_pulang'
+                'jam_pulang',
+                'keterangan'
             )
             ->leftJoin('jam_kerja', 'presensi.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+            ->leftJoin('pengajuan_izin', 'presensi.kode_izin', '=', 'pengajuan_izin.kode_izin')
             ->join('karyawan', 'presensi.nik', '=', 'karyawan.nik')
             ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
             ->where('tgl_presensi', $tanggal)
@@ -376,8 +421,10 @@ class PresensiController extends Controller
             ->first();
 
         $presensi = DB::table('presensi')
+            ->select('presensi.*', 'keterangan', 'jam_kerja.*')
             ->leftJoin('jam_kerja', 'presensi.kode_jam_kerja', 'jam_kerja.kode_jam_kerja')
-            ->where('nik', $nik)
+            ->leftJoin('pengajuan_izin', 'presensi.kode_izin', 'pengajuan_izin.kode_izin')
+            ->where('presensi.nik', $nik)
             ->whereRaw('MONTH(tgl_presensi)="' . $bulan . '"')
             ->whereRaw('YEAR(tgl_presensi)="' . $tahun . '"')
             ->orderBy('tgl_presensi')
@@ -414,6 +461,8 @@ class PresensiController extends Controller
     {
         $bulan = $request->bulan;
         $tahun = $request->tahun;
+        $dari = $tahun . "-" . $bulan . "-01";
+        $sampai = date("Y-m-t", strtotime($dari));
         $namabulan = [
             "",
             "Januari",
@@ -429,45 +478,64 @@ class PresensiController extends Controller
             "November",
             "Desember"
         ];
-        $rekap = DB::table('presensi')
-            ->selectRaw('presensi.nik, nama_lengkap, jam_masuk, jam_pulang,
-        MAX(IF(DAY(tgl_presensi) = 1,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_1,
-        MAX(IF(DAY(tgl_presensi) = 2,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_2,
-        MAX(IF(DAY(tgl_presensi) = 3,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_3,
-        MAX(IF(DAY(tgl_presensi) = 4,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_4,
-        MAX(IF(DAY(tgl_presensi) = 5,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_5,
-        MAX(IF(DAY(tgl_presensi) = 6,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_6,
-        MAX(IF(DAY(tgl_presensi) = 7,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_7,
-        MAX(IF(DAY(tgl_presensi) = 8,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_8,
-        MAX(IF(DAY(tgl_presensi) = 9,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_9,
-        MAX(IF(DAY(tgl_presensi) = 10,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_10,
-        MAX(IF(DAY(tgl_presensi) = 11,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_11,
-        MAX(IF(DAY(tgl_presensi) = 12,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_12,
-        MAX(IF(DAY(tgl_presensi) = 13,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_13,
-        MAX(IF(DAY(tgl_presensi) = 14,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_14,
-        MAX(IF(DAY(tgl_presensi) = 15,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_15,
-        MAX(IF(DAY(tgl_presensi) = 16,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_16,
-        MAX(IF(DAY(tgl_presensi) = 17,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_17,
-        MAX(IF(DAY(tgl_presensi) = 18,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_18,
-        MAX(IF(DAY(tgl_presensi) = 19,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_19,
-        MAX(IF(DAY(tgl_presensi) = 20,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_20,
-        MAX(IF(DAY(tgl_presensi) = 21,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_21,
-        MAX(IF(DAY(tgl_presensi) = 22,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_22,
-        MAX(IF(DAY(tgl_presensi) = 23,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_23,
-        MAX(IF(DAY(tgl_presensi) = 24,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_24,
-        MAX(IF(DAY(tgl_presensi) = 25,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_25,
-        MAX(IF(DAY(tgl_presensi) = 26,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_26,
-        MAX(IF(DAY(tgl_presensi) = 27,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_27,
-        MAX(IF(DAY(tgl_presensi) = 28,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_28,
-        MAX(IF(DAY(tgl_presensi) = 29,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_29,
-        MAX(IF(DAY(tgl_presensi) = 30,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_30,
-        MAX(IF(DAY(tgl_presensi) = 31,CONCAT(jam_in,"-",IFNULL(jam_out,"00:00:00")),"")) as tgl_31')
-            ->join('karyawan', 'presensi.nik', '=', 'karyawan.nik')
-            ->leftJoin('jam_kerja', 'presensi.kode_jam_kerja', 'jam_kerja.kode_jam_kerja')
-            ->whereRaw('MONTH(tgl_presensi)="' . $bulan . '"')
-            ->whereRaw('YEAR(tgl_presensi)="' . $tahun . '"')
-            ->groupByRaw('presensi.nik, nama_lengkap, jam_masuk, jam_pulang')
-            ->get();
+
+        $select_date = "";
+        $field_date = "";
+        $i = 1;
+        while (strtotime($dari) <= strtotime($sampai)) {
+            $rangetanggal[] = $dari;
+
+            $select_date .= "MAX(IF(tgl_presensi = '$dari', 
+            CONCAT(
+            IFNULL(jam_in, 'NA'),'|',
+            IFNULL(jam_out, 'NA'),'|',
+            IFNULL(presensi.status, 'NA'),'|',
+            IFNULL(nama_jam_kerja, 'NA'),'|',
+            IFNULL(jam_masuk, 'NA'),'|',
+            IFNULL(jam_pulang, 'NA'),'|',
+            IFNULL(presensi.kode_izin, 'NA'),'|',
+            IFNULL(keterangan, 'NA'),'|'    
+            ),NULL)) as tgl_" . $i . ",";
+
+            $field_date .= "tgl_" . $i . ",";
+            $i++;
+            $dari = date("Y-m-d", strtotime("+1 day", strtotime($dari)));
+        }
+        //dd($select_date);
+        $jmlhari = count($rangetanggal);
+        $lastrange = $jmlhari - 1;
+        $sampai = $rangetanggal[$lastrange];
+
+        if ($jmlhari == 30) {
+            array_push($rangetanggal, NULL);
+        } else if ($jmlhari == 29) {
+            array_push($rangetanggal, NULL, NULL);
+        } else if ($jmlhari == 28) {
+            array_push($rangetanggal, NULL, NULL, NULL);
+        }
+
+        $query = Karyawan::query();
+        $query->selectRaw("$field_date.karyawan.nik, nama_lengkap, jabatan");
+
+        $query->leftJoin(
+            DB::raw("(
+                SELECT 
+                $select_date
+                presensi.nik
+                FROM presensi
+                LEFT JOIN jam_kerja ON presensi.kode_jam_kerja = jam_kerja.kode_jam_kerja
+                LEFT JOIN pengajuan_izin ON presensi.kode_izin = pengajuan_izin.kode_izin
+                WHERE tgl_presensi BETWEEN '$rangetanggal[0]' AND '$sampai'
+                GROUP By  nik
+            )presensi"),
+            function ($join) {
+                $join->on('karyawan.nik', '=', 'presensi.nik');
+            }
+        );
+
+        $query->orderBy('nama_lengkap');
+        $rekap = $query->get();
+
 
         if (isset($_POST['exportexcel'])) {
             $time = date("d-M-Y H:i:s");
@@ -475,14 +543,15 @@ class PresensiController extends Controller
             header("Content-Disposition: attachment; filename= Rekap Presensi Pegawai $time.xls");
         }
 
-        return view('presensi.cetakrekap', compact('bulan', 'tahun', 'namabulan', 'rekap'));
+        return view('presensi.cetakrekap', compact('bulan', 'tahun', 'namabulan', 'rekap', 'rangetanggal', 'jmlhari'));
     }
     public function izinsakit(Request $request)
     {
         $query = Pengajuanizin::query();
         $query->select(
-            'id',
-            'tgl_izin',
+            'kode_izin',
+            'tgl_izin_dari',
+            'tgl_izin_sampai',
             'pengajuan_izin.nik',
             'nama_lengkap',
             'jabatan',
@@ -492,7 +561,7 @@ class PresensiController extends Controller
         );
         $query->join('karyawan', 'pengajuan_izin.nik', '=', 'karyawan.nik',);
         if (!empty($request->dari) && !empty($request->sampai)) {
-            $query->whereBetween('tgl_izin', [$request->dari, $request->sampai]);
+            $query->whereBetween('tgl_izin_dari', [$request->dari, $request->sampai]);
         }
         if (!empty($request->nik)) {
             $query->where('pengajuan_izin.nik', $request->nik);
@@ -504,31 +573,74 @@ class PresensiController extends Controller
             $query->where('status_approved', $request->status_approved);
         }
 
-        $query->orderBy('tgl_izin', 'desc');
-        $izinsakit = $query->paginate(2);
+        $query->orderBy('tgl_izin_dari', 'desc');
+        $izinsakit = $query->paginate(10);
         $izinsakit->appends($request->all());
         return view('presensi.izinsakit', compact('izinsakit'));
     }
     public function approveizinsakit(Request $request)
     {
         $status_approved = $request->status_approved;
-        $id_izinsakit_form = $request->id_izinsakit_form;
-        $update = DB::table('pengajuan_izin')->where('id', $id_izinsakit_form)
-            ->update([
+        $kode_izin = $request->kode_izin_form;
+        $dataizin = DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->first();
+        $nik = $dataizin->nik;
+        $tgl_dari = $dataizin->tgl_izin_dari;
+        $tgl_sampai = $dataizin->tgl_izin_sampai;
+        $status = $dataizin->status;
+        DB::beginTransaction();
+        try {
+            if ($status_approved == 1) {
+                while (strtotime($tgl_dari) <= strtotime($tgl_sampai)) {
+                    DB::table('presensi')->insert([
+                        'nik' => $nik,
+                        'tgl_presensi' => $tgl_dari,
+                        'status' => $dataizin->status,
+                        'kode_izin' => $kode_izin
+                    ]);
+                    $tgl_dari = date("Y-m-d", strtotime("+1 days", strtotime($tgl_dari)));
+                }
+            }
+            DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->update([
                 'status_approved' => $status_approved
             ]);
-        if ($update) {
-            return Redirect::back()->with(['success' => 'Data berhasil di update']);
-        } else {
-            return Redirect::back()->with(['warning' => 'Data gagal di update']);
+
+            DB::commit();
+            return Redirect::back()->with(['success' => 'Data berhasil diproses']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            dd($e);
+            return Redirect::back()->with(['warning' => 'Data gagal diproses']);
+            //throw $th;
         }
+
+        //$update = DB::table('pengajuan_izin')->where('id', $kode_izin)
+        //    ->update([
+        //        'status_approved' => $status_approved
+        //    ]);
+        //if ($update) {
+        //    return Redirect::back()->with(['success' => 'Data berhasil di update']);
+        //} else {
+        //    return Redirect::back()->with(['warning' => 'Data gagal di update']);
+        //}
     }
-    public function batalkanizinsakit($id)
+    public function batalkanizinsakit($kode_izin)
     {
-        $update = DB::table('pengajuan_izin')->where('id', $id)
-            ->update([
+        DB::beginTransaction();
+        try {
+            DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->update([
                 'status_approved' => 0
             ]);
+            DB::table('presensi')->where('kode_izin', $kode_izin)->delete();
+            DB::commit();
+            return Redirect::back()->with(['success' => 'Data berhasil dibatalkan']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return Redirect::back()->with(['warning' => 'Data gagal dibatalkan']);
+        }
+
+        $update = DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->update([
+            'status_approved' => 0
+        ]);
         if ($update) {
             return Redirect::back()->with(['success' => 'Data berhasil di update']);
         } else {
@@ -541,5 +653,27 @@ class PresensiController extends Controller
         $nik = Auth::guard('karyawan')->user()->nik;
         $cek = DB::table('pengajuan_izin')->where('nik', $nik)->where('tgl_izin', $tgl_izin)->count();
         return $cek;
+    }
+
+    public function showact($kode_izin)
+    {
+        $dataizin = DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->first();
+        return view('presensi.showact', compact('dataizin'));
+    }
+    public function deleteizin($kode_izin)
+    {
+        $cekdataizin = DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->first();
+        $doc_sid = $cekdataizin->doc_sid;
+
+        try {
+            DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->delete();
+            if ($doc_sid != null) {
+                Storage::delete('public/uploads/sid/' . $doc_sid);
+            }
+            return redirect('/presensi/izin')->with(['success' => 'Data berhasil dihapus']);
+        } catch (\Exception $e) {
+            return redirect('/presensi/izin')->with(['warning' => 'Data gagal dihapus']);
+            //throw $th;
+        }
     }
 }

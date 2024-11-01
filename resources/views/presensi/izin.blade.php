@@ -15,6 +15,7 @@
         .historicontent{
         display: flex;
         gap: 1px;
+        margin-top: 15px;
         }
         .datapresensi{
         margin-left: 10px;
@@ -22,6 +23,9 @@
         .status{
            position: absolute;
            right: 20px; 
+        }
+        .card{
+            border: 1px solid blue;
         }
     </style>
     <!-- * App Header -->
@@ -49,6 +53,49 @@
 </div>
 <div class="row">
     <div class="col">
+        <form method="GET" action="/presensi/izin">
+            <div class="row">
+                <div class="col-8">
+                    <div class="form-group">
+                        <select name="bulan" id="bulan" class="form-control selectmaterialize">
+                            <option value="">Bulan</option>
+                            @for($i = 1; $i<=12; $i++)
+                            <option {{ Request('bulan')== $i ? 'selected' : ''}} 
+                            value="{{ $i }}">{{ $namabulan[$i] }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-group">
+                        <select name="tahun" id="tahun" class="form-control selectmaterialize">
+                            <option value="">Tahun</option>
+                            @php
+                                $tahun_awal = 2024;
+                                $tahun_sekarang = date("Y");
+                                for($t = $tahun_awal; $t <= $tahun_sekarang; $t++){
+                                    if(Request('tahun')==$t){
+                                        $selected = 'selected';
+                                    }else{
+                                        $selected='';
+                                    }
+                                    echo "<option $selected value='$t'>$t</option>";}
+                            @endphp
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <button class="btn btn-primary w-100">Cari data</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row" style="position: fixed; width:100%; margin:auto; overflow-y:scroll; height: 430px">
+    <div class="col">
         @foreach ($dataizin as $d)
         @php
             if ($d->status == "i") {
@@ -61,7 +108,8 @@
                 $status ="Not found";
             }
         @endphp
-        <div class="card mt-1">
+        <div class="card mt-1 card_izin" kode_izin="{{ $d->kode_izin }}" status_approved="{{ $d->status_approved }}" 
+            data-toggle="modal" data-target="#actionSheetIconed">
             <div class="card-body">
                 <div class="historicontent">
                     <div class="iconpresensi">
@@ -69,6 +117,8 @@
                             <ion-icon name="document-outline" style="font-size: 48px; color:blue"></ion-icon>
                         @elseif($d->status=="s")
                         <ion-icon name="medkit-outline" style="font-size: 48px; color:rgb(255, 0, 60)"></ion-icon>
+                        @elseif($d->status=="c")
+                        <ion-icon name="calendar-number-outline" style="font-size: 48px; color:rgb(0, 255, 170)"></ion-icon>
                         @endif
                         
                     </div>
@@ -82,6 +132,9 @@
                         <p>
                             {{ $d->keterangan }}
                             <br>
+                            @if ($d->status=="c")
+                                <span class="badge bg-warning">{{ $d->nama_cuti }}</span>
+                            @endif    
                             @if (!empty($d->doc_sid))
                             <span style="color:blue">
                                 <ion-icon name="document-attach-outline"></ion-icon>Lihat SID
@@ -147,4 +200,58 @@
 	</div>
 </div>
 
+<div class="modal fade action-sheet" id="actionSheetIconed" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Aksi</h5>
+            </div>
+            <div class="modal-body" id="showact">
+ 
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="modal fade dialogbox" id="deleteConfirm" data-backdrop="static" tabindex="-1" role="dialog">
+	    <div class="modal-dialog" role="document">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title">Yakin Dihapus ?</h5>
+	            </div>
+	                <div class="modal-body">
+    	                Data Pengajuan Izin Akan dihapus
+    	            </div>
+    	            <div class="modal-footer">
+    	                <div class="btn-inline">
+    	                    <a href="#" class="btn btn-text-secondary" data-dismiss="modal">Batalkan</a>
+    	                    <a href="" class="btn btn-text-primary" id="hapuspengajuan">Hapus</a>
+    	                </div>
+    	        </div>
+    	    </div>
+        </div>
+    </div>
+    
+
 @endsection
+
+@push('myscript')
+<script>
+    $(function(){
+        $(".card_izin").click(function(e){
+            var kode_izin = $(this).attr("kode_izin");
+            var status_approved = $(this).attr("status_approved");
+            if(status_approved==1){
+                Swal.fire({
+                    title: 'Oops!',
+                    text: 'Data sudah disetujui, tidak dapat diubah!',
+                    icon: 'Warning'
+                })
+            }else{
+                $("#showact").load('/izin/' + kode_izin +'/showact');
+            }
+        });
+    });
+</script>
+    
+@endpush

@@ -3,22 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use PhpParser\Node\Stmt\TryCatch;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 
-class IzinsakitController extends Controller
+class IzincutiController extends Controller
 {
     public function create()
     {
-        return view('sakit.create');
+        $mastercuti = DB::table('master_cuti')->orderBy('kode_cuti')->get();
+        return view('izincuti.create', compact('mastercuti'));
     }
     public function store(Request $request)
     {
         $nik = Auth::guard('karyawan')->user()->nik;
         $tgl_izin_dari = $request->tgl_izin_dari;
         $tgl_izin_sampai = $request->tgl_izin_sampai;
-        $status = "s";
+        $kode_cuti = $request->kode_cuti;
+        $status = "c";
         $keterangan = $request->keterangan;
 
         $bulan = date("m", strtotime($tgl_izin_dari));
@@ -35,19 +37,32 @@ class IzinsakitController extends Controller
         $format = "IZ" . $bulan . $thn;
         $kode_izin = buatkode($lastkodeizin, $format, 3);
 
-        if ($request->hasFile('sid')) {
-            $sid = $kode_izin . "." . $request->file('sid')->getClientOriginalExtension();
-        } else {
-            $sid = null;
-        }
+        //hitung jumlah hari yg diajukan
+        $jmlhari = hitunghari($tgl_izin_dari, $tgl_izin_sampai);
+
+        //cek jumlah maksimal cuti
+        $cuti = DB::table('master_cuti')->where('kode_cuti', $kode_cuti)->first();
+        $jmlmaxcuti = $cuti->jml_hari;
+
+        //cek jumlah cuti yg sudah digunakan pada tahun aktif
+        $cutidigunakan = DB::table('presensi')
+            ->whereRaw('YEAR(tgl_presensi)="' . $tahun . '"')
+            ->where('status', 'c')
+            ->where('nik', $nik)
+            ->count();
+
+        //sisa cuti
+        $sisacuti = $jmlmaxcuti - $cutidigunakan;
+
+        //cek kode izin
         $data = [
             'kode_izin' => $kode_izin,
             'nik' => $nik,
             'tgl_izin_dari' => $tgl_izin_dari,
             'tgl_izin_sampai' => $tgl_izin_sampai,
+            'kode_cuti' => $kode_cuti,
             'status' => $status,
-            'keterangan' => $keterangan,
-            'doc_sid' => $sid
+            'keterangan' => $keterangan
         ];
 
         //cek sudah absen/belum
@@ -62,7 +77,10 @@ class IzinsakitController extends Controller
 
         $datapresensi = $cekpresensi->get();
 
-        if ($cekpresensi->count() > 0) {
+        if ($jmlhari > $sisacuti) {
+            return redirect('/presensi/izin')->with(['error' => 'Jumlah hari melebihi batas maksimal 
+            jatah cuti dalam satu tahun, sisa cuti anda adalah ' . $sisacuti . ' hari']);
+        } else if ($cekpresensi->count() > 0) {
             $blacklistdate = "";
             foreach ($datapresensi as $d) {
                 $blacklistdate .= date('d-m-Y', strtotime($d->tgl_presensi)) . ",";
@@ -75,11 +93,6 @@ class IzinsakitController extends Controller
         } else {
             $simpan = DB::table('pengajuan_izin')->insert($data);
             if ($simpan) {
-                if ($request->hasFile('sid')) {
-                    $sid = $kode_izin . "." . $request->file('sid')->getClientOriginalExtension();
-                    $folderPath = "public/uploads/sid/";
-                    $request->file('sid')->storeAs($folderPath, $sid);
-                }
                 return redirect('/presensi/izin')->with(['success' => 'Data Berhasil Disimpan']);
             } else {
                 return redirect('/presensi/izin')->with(['error' => 'Data Gagal Disimpan']);
@@ -89,38 +102,28 @@ class IzinsakitController extends Controller
     public function edit($kode_izin)
     {
         $dataizin = DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->first();
-        return view('sakit.edit', compact('dataizin'));
+        $mastercuti = DB::table('master_cuti')->orderBy('kode_cuti')->get();
+        return view('izincuti.edit', compact('mastercuti', 'dataizin'));
     }
     public function update($kode_izin, Request $request)
     {
         $tgl_izin_dari = $request->tgl_izin_dari;
         $tgl_izin_sampai = $request->tgl_izin_sampai;
         $keterangan = $request->keterangan;
-
-        if ($request->hasFile('sid')) {
-            $sid = $kode_izin . "." . $request->file('sid')->getClientOriginalExtension();
-        } else {
-            $sid = null;
-        }
-        $data = [
-            'tgl_izin_dari' => $tgl_izin_dari,
-            'tgl_izin_sampai' => $tgl_izin_sampai,
-            'keterangan' => $keterangan,
-            'doc_sid' => $sid
-        ];
+        $kode_cuti = $request->kode_cuti;
 
         try {
-            DB::table('pengajuan_izin')
-                ->where('kode_izin', $kode_izin)
-                ->update($data);
-            if ($request->hasFile('sid')) {
-                $sid = $kode_izin . "." . $request->file('sid')->getClientOriginalExtension();
-                $folderPath = "public/uploads/sid/";
-                $request->file('sid')->storeAs($folderPath, $sid);
-            }
-            return redirect('/presensi/izin')->with(['success' => 'Data berhasil diupdate']);
+            //code...
+            $data = [
+                'tgl_izin_dari' => $tgl_izin_dari,
+                'tgl_izin_sampai' => $tgl_izin_sampai,
+                'kode_cuti' => $kode_cuti,
+                'keterangan' => $keterangan
+            ];
+            DB::table('pengajuan_izin')->where('kode_izin', $kode_izin)->update($data);
+            return redirect('/presensi/izin')->with(['success' => 'Data Berhasil Diupdate']);
         } catch (\Exception $e) {
-            return redirect('/presensi/izin')->with(['error' => 'Data gagal diupdate']);
+            return redirect('/presensi/izin')->with(['error' => 'Data Gagal Diupdate']);
         }
     }
 }

@@ -18,6 +18,20 @@
     <div class="container-xl">
         <div class="row">
             <div class="col-12">
+                @if(Session::get('success'))
+                    <div class="alert alert-success">
+                        {{ Session::get('success') }}
+                    </div>
+                    @endif
+                    @if(Session::get('warning'))
+                    <div class="alert alert-warning">
+                            {{ Session::get('warning') }}
+                    </div>
+                    @endif
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
                 <form action="/presensi/izinsakit" method="GET", autocomplete="off">
                     <div class="row">
                         <div class="col-6">
@@ -150,6 +164,7 @@
                 <thead>
                     <tr>
                         <th>No.</th>
+                        <th>Kode Izin</th>
                         <th>Tanggal</th>
                         <th>NIK</th>
                         <th>Nama Karyawan</th>
@@ -164,7 +179,11 @@
                     @foreach ($izinsakit as $d)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ date('d-m-Y', strtotime($d->tgl_izin)) }}</td>
+                            <td>{{ $d->kode_izin }}</td>
+                            <td>
+                                {{ date('d-m-Y', strtotime($d->tgl_izin_dari)) }} s/d 
+                                {{ date('d-m-Y', strtotime($d->tgl_izin_sampai)) }}
+                            </td>
                             <td>{{ $d->nik }}</td>
                             <td>{{ $d->nama_lengkap }}</td>
                             <td>{{ $d->jabatan }}</td>
@@ -182,8 +201,8 @@
                             </td>
                             <td>
                                 @if ($d->status_approved == 0)
-                                    <a href="3" class="btn btn-sm btn-primary" id="approve" 
-                                    id_izinsakit="{{ $d->id }}">
+                                    <a href="3" class="btn btn-sm btn-primary approve"  
+                                    kode_izin="{{ $d->kode_izin }}">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  
                                     width="24"  height="24"  viewBox="0 0 24 24"  
                                     fill="none"  stroke="currentColor"  stroke-width="2"  
@@ -197,7 +216,7 @@
                                 Proses
                                 </a>
                                 @else
-                                <a href="/presensi/{{ $d->id }}/batalkanizinsakit" class="btn btn-sm btn-danger">
+                                <a href="/presensi/{{ $d->kode_izin }}/batalkanizinsakit" class="btn btn-sm btn-danger">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
                                     height="24"  viewBox="0 0 24 24"  fill="currentColor"  
                                     class="icon icon-tabler icons-tabler-filled icon-tabler-square-x">
@@ -234,7 +253,7 @@
         <div class="modal-body">
             <form action="/presensi/approveizinsakit" method="POST">
                 @csrf
-                <input type="hidden" id="id_izinsakit_form" name="id_izinsakit_form">
+                <input type="hidden" id="kode_izin_form" name="kode_izin_form">
                 <div class="row">
                     <div class="col-12">
                         <div class="form-group">
@@ -275,10 +294,10 @@
 @push('myscript')
  <script>
     $(function(){
-        $("#approve").click(function(e){
+        $(".approve").click(function(e){
             e.preventDefault()
-            var id_izinsakit = $(this).attr("id_izinsakit");
-            $("#id_izinsakit_form").val(id_izinsakit);
+            var kode_izin = $(this).attr("kode_izin");
+            $("#kode_izin_form").val(kode_izin);
             $("#modal-izinsakit").modal("show");
         });
         $("#dari, #sampai").datepicker({ 
