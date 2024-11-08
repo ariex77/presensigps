@@ -62,6 +62,7 @@
                               <th>Jam Masuk</th>
                               <th>Akhir Jam Masuk</th>
                               <th>Jam Pulang</th>
+                              <th>Lintas Hari</th>
                               <th>Aksi</th>
                           </tr>
                       </thead>
@@ -75,6 +76,32 @@
                               <td>{{ $d->jam_masuk }}</td>
                               <td>{{ $d->akhir_jam_masuk }}</td>
                               <td>{{ $d->jam_pulang }}</td>
+                              <td>
+                                @if ($d->lintashari==1)
+                                    <span class="badge bg-success">
+                                      <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
+                                      height="24"  viewBox="0 0 24 24"  fill="none"  
+                                      stroke="currentColor"  stroke-width="2"  
+                                      stroke-linecap="round"  stroke-linejoin="round"  
+                                      class="icon icon-tabler icons-tabler-outline icon-tabler-check">
+                                      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                      <path d="M5 12l5 5l10 -10" />
+                                    </svg>
+                                    </span>
+                                @else
+                                  <span class="badge bg-danger">
+                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
+                                    height="24"  viewBox="0 0 24 24"  fill="none"  
+                                    stroke="currentColor"  stroke-width="2"  
+                                    stroke-linecap="round"  stroke-linejoin="round"  
+                                    class="icon icon-tabler icons-tabler-outline icon-tabler-x">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M18 6l-12 12" />
+                                    <path d="M6 6l12 12" />
+                                  </svg>
+                                  </span>
+                                @endif
+                              </td>
                               <td>
                                 <div class="btn-group">
                                     <a href="#" class="edit btn btn-info btn-sm" kode_jam_kerja="{{ $d->kode_jam_kerja }}">
@@ -262,6 +289,17 @@
         </div>
   </div>
 </div>
+<div class="row">
+  <div class="col-12">
+    <div class="form-group">
+      <select name="lintashari" id="lintashari" class="form-select">
+        <option value="">Lintas Hari</option>
+        <option value="1">Ya</option>
+        <option value="0">Tidak</option>
+      </select>
+    </div>
+  </div>
+</div>
 <div class="row mt-2">
   <div class="col-12">
       <div class="form-group">
@@ -313,6 +351,7 @@
             var jam_masuk = $("#jam_masuk").val();
             var akhir_jam_masuk = $("#akhir_jam_masuk").val();
             var jam_pulang = $("#jam_pulang").val();
+            var lintashari = $("#lintashari").val();
             if(kode_jam_kerja==""){
                 //alert('kode harus diisi');
                 Swal.fire({
@@ -336,7 +375,7 @@
                     });
                 return false;
             }else if (awal_jam_masuk==""){
-                //alert('lokasi harus diisi');
+                //alert('awal_jam_masuk harus diisi');
                 Swal.fire({
                     title: 'Warning!',
                     text: 'Awal jam masuk harus diisi',
@@ -347,7 +386,7 @@
                     });
                 return false;
             }else if (jam_masuk==""){
-                //alert('radius harus diisi');
+                //alert('jam_masuk harus diisi');
                 Swal.fire({
                     title: 'Warning!',
                     text: 'Jam masuk harus diisi',
@@ -358,7 +397,7 @@
                     });
                 return false;
             }else if (akhir_jam_masuk==""){
-                //alert('lokasi harus diisi');
+                //alert('akhir_jam_masuk harus diisi');
                 Swal.fire({
                     title: 'Warning!',
                     text: 'Akhir jam masuk harus diisi',
@@ -369,7 +408,7 @@
                     });
                 return false;
             }else if (jam_pulang==""){
-                //alert('radius harus diisi');
+                //alert('jam_pulang harus diisi');
                 Swal.fire({
                     title: 'Warning!',
                     text: 'Jam pulang harus diisi',
@@ -377,6 +416,17 @@
                     confirmButtonText: 'Ok'
                     }).then((result)=>{
                         $("#jam_pulang").focus();
+                    });
+                  return false;
+            }else if (lintashari==""){
+                //alert('lintashari harus diisi');
+                Swal.fire({
+                    title: 'Warning!',
+                    text: 'Lintas Hari harus diisi',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                    }).then((result)=>{
+                        $("#lintashari").focus();
                     });
                   return false;
             }

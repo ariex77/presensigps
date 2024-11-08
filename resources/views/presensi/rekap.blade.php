@@ -24,7 +24,7 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <select name="bulan" id="bulan" class="form-select">
+                                        <select name="bulan" id="bulan" class="form-select" required>
                                             <option value="">Bulan</option>
                                             @for ($i=1;$i<=12;$i++) <option value="{{ $i }}"{{ date("m")== $i ? 'selected' : '' }}>{{ 
                                                 $namabulan[$i] }}</option>
@@ -36,7 +36,7 @@
                             <div class="row mt-2">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <select name="tahun" id="tahun" class="form-select">
+                                        <select name="tahun" id="tahun" class="form-select" required>
                                             <option value="">Tahun</option>
                                             @php
                                                 $tahunmulai =2024;
@@ -49,7 +49,18 @@
                                     </div>
                                 </div>
                             </div>
-                            
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <select name="kode_dept" id="kode_dept" class="form-select">
+                                            <option value="">Semua Bidang</option>
+                                            @foreach ($departemen as $d)
+                                                <option value="{{ $d->kode_dept }}">{{ $d->nama_dept }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="row mt-2">
                                 <div class="col-6">
                                     <div class="form-group">

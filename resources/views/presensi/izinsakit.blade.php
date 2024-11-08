@@ -172,7 +172,9 @@
                         <th>Status</th>
                         <th>Keterangan</th>
                         <th>Approval</th>
+                        @role('administrator', 'user')
                         <th>Aksi</th>
+                        @endrole
                     </tr>
                 </thead>
                 <tbody>
@@ -189,7 +191,6 @@
                             <td>{{ $d->jabatan }}</td>
                             <td>{{ $d->status =="i" ? "Izin" : "Sakit" }}</td>
                             <td>{{ $d->keterangan }}</td>
-
                             <td>
                                 @if ($d->status_approved==1)
                                     <span class="badge bg-success">Disetujui</span>
@@ -199,6 +200,7 @@
                                     <span class="badge bg-warning">Pending</span>
                                 @endif
                             </td>
+                            @role('administrator', 'user')
                             <td>
                                 @if ($d->status_approved == 0)
                                     <a href="3" class="btn btn-sm btn-primary approve"  
@@ -231,8 +233,8 @@
                                 Batalkan
                                 </a>
                                 @endif
-                                
                             </td>
+                            @endrole
                         </tr>
                     @endforeach
                 </tbody>

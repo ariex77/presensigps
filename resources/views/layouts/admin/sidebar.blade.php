@@ -164,10 +164,13 @@
             <div class="dropdown-menu {{ request()->is(['karyawan','departemen', 'cabang', 'cuti']) ? 'show' : '' }}">
               <div class="dropdown-menu-columns">
                 <div class="dropdown-menu-column">
+                  @role('administrator|admin bidang', 'user')
                   <a class="dropdown-item {{ request()->is(['karyawan']) ? 'active' : '' }}" 
                     href="/karyawan">
                     Pegawai
                   </a>
+                  @endrole
+                  @role('administrator', 'user')
                   <a class="dropdown-item {{ request()->is(['departemen']) ? 'active' : '' }}" 
                     href="/departemen">
                     Bidang 
@@ -180,6 +183,7 @@
                     href="/cuti">
                     Cuti 
                   </a>
+                  @endrole
                 </div>
               </div>
             </div>
@@ -264,6 +268,7 @@
               </div>
             </div>
           </li>
+          @role('administrator', 'user')
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle {{ request()->is(['konfigurasi','konfigurasi/*']) ? 'show' : '' }}" 
             href="#navbar-base" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="
@@ -298,10 +303,15 @@
                     href="/konfigurasi/jamkerjadept">
                       Jam Kerja Bidang
                     </a>
+                    <a class="dropdown-item {{ request()->is(['konfigurasi/users']) ? 'active' : '' }}" 
+                      href="/konfigurasi/users">
+                        Users
+                      </a>
                 </div>
               </div>
             </div>
           </li>
+          @endrole
         </ul>
       </div>
     </div>

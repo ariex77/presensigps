@@ -43,6 +43,7 @@ class KonfigurasiController extends Controller
         $jam_masuk = $request->jam_masuk;
         $akhir_jam_masuk = $request->akhir_jam_masuk;
         $jam_pulang = $request->jam_pulang;
+        $lintashari = $request->lintashari;
 
         $data = [
             'kode_jam_kerja' => $kode_jam_kerja,
@@ -50,7 +51,8 @@ class KonfigurasiController extends Controller
             'awal_jam_masuk' => $awal_jam_masuk,
             'jam_masuk' => $jam_masuk,
             'akhir_jam_masuk' => $akhir_jam_masuk,
-            'jam_pulang' => $jam_pulang
+            'jam_pulang' => $jam_pulang,
+            'lintashari' => $lintashari
         ];
         try {
             DB::table('jam_kerja')->insert($data);
@@ -73,13 +75,16 @@ class KonfigurasiController extends Controller
         $jam_masuk = $request->jam_masuk;
         $akhir_jam_masuk = $request->akhir_jam_masuk;
         $jam_pulang = $request->jam_pulang;
+        $lintashari = $request->lintashari;
 
         $data = [
             'nama_jam_kerja' => $nama_jam_kerja,
             'awal_jam_masuk' => $awal_jam_masuk,
             'jam_masuk' => $jam_masuk,
             'akhir_jam_masuk' => $akhir_jam_masuk,
-            'jam_pulang' => $jam_pulang
+            'jam_pulang' => $jam_pulang,
+            'lintashari' => $lintashari
+
         ];
         try {
             DB::table('jam_kerja')->where('kode_jam_kerja', $kode_jam_kerja)->update($data);

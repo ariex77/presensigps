@@ -56,7 +56,7 @@
     </div>  
 </div>
 <div class="jam-digital-malasngoding">
-    <p>{{ date("d-m-Y") }}</p>
+    <p>{{ $hariini }}</p>
     <p id="jam"></p>
     <p>{{ $jamkerja->nama_jam_kerja }}</p>
     <p>Mulai : {{ date("H:i", strtotime($jamkerja->awal_jam_masuk)) }}</p>

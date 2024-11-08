@@ -18,9 +18,9 @@ use function Laravel\Prompts\select;
 
 class PresensiController extends Controller
 {
-    public function gethari()
+    public function gethari($hari)
     {
-        $hari = date("D");
+        //$hari = date("D");
 
         switch ($hari) {
             case 'Sun':
@@ -60,9 +60,24 @@ class PresensiController extends Controller
 
     public function create()
     {
-        $hariini = date("Y-m-d");
-        $namahari = $this->gethari();
         $nik = Auth::guard('karyawan')->user()->nik;
+        $hariini = date("Y-m-d");
+        $jamsekarang = date("H:i");
+        $tgl_sebelumnya = date("Y-m-d", strtotime("-1 days", strtotime($hariini)));
+        $cekpresensi_sebelumnya = DB::table('presensi')
+            ->join('jam_kerja', 'presensi.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+            ->where('tgl_presensi', $tgl_sebelumnya)
+            ->where('nik', $nik)
+            ->first();
+
+        $ceklintashari_presensi = $cekpresensi_sebelumnya != null ? $cekpresensi_sebelumnya->lintashari : 0;
+
+        if ($ceklintashari_presensi == 1) {
+            if ($jamsekarang < "09:00") {
+                $hariini = $tgl_sebelumnya;
+            }
+        }
+        $namahari = $this->gethari(date('D', strtotime($hariini)));
         $kode_dept = Auth::guard('karyawan')->user()->kode_dept;
         $cek = DB::table('presensi')->where('tgl_presensi', $hariini)->where('nik', $nik)->count();
         $kode_cabang = Auth::guard('karyawan')->user()->kode_cabang;
@@ -88,15 +103,26 @@ class PresensiController extends Controller
         if ($jamkerja == null) {
             return view('presensi.notifjadwal');
         } else {
-            return view('presensi.create', compact('cek', 'lok_kantor', 'jamkerja'));
+            return view('presensi.create', compact('cek', 'lok_kantor', 'jamkerja', 'hariini'));
         }
     }
     public function store(Request $request)
     {
         $nik = Auth::guard('karyawan')->user()->nik;
+        $hariini = date("Y-m-d");
+        $jamsekarang = date("H:i");
+        $tgl_sebelumnya = date("Y-m-d", strtotime("-1 days", strtotime($hariini)));
+        $cekpresensi_sebelumnya = DB::table('presensi')
+            ->join('jam_kerja', 'presensi.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+            ->where('tgl_presensi', $tgl_sebelumnya)
+            ->where('nik', $nik)
+            ->first();
+
+        $ceklintashari_presensi = $cekpresensi_sebelumnya != null ? $cekpresensi_sebelumnya->lintashari : 0;
+
         $kode_dept = Auth::guard('karyawan')->user()->kode_dept;
         $kode_cabang = Auth::guard('karyawan')->user()->kode_cabang;
-        $tgl_presensi = date("Y-m-d");
+        $tgl_presensi = $ceklintashari_presensi == 1 && $jamsekarang < "09:00" ? $tgl_sebelumnya : date("Y-m-d");
         $jam = date("H:i:s");
         $lok_kantor = DB::table('cabang')->where('kode_cabang', $kode_cabang)->first();
         $lok = explode(",", $lok_kantor->lokasi_cabang);
@@ -111,7 +137,7 @@ class PresensiController extends Controller
         $radius = round($jarak["meters"]);
 
         //Cek jam kerja pegawai
-        $namahari = $this->gethari();
+        $namahari = $this->gethari(date('D', strtotime($tgl_presensi)));
         $jamkerja = DB::table('konfigurasi_jamkerja')
             ->join('jam_kerja', 'konfigurasi_jamkerja.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
             ->where('nik', $nik)->where('hari', $namahari)->first();
@@ -146,11 +172,19 @@ class PresensiController extends Controller
         $fileName = $formatName . ".png";
         $file = $folderPath . $fileName;
 
+        $tgl_pulang = $jamkerja->lintashari == 1 ? date('Y-m-d', strtotime(
+            "+ 1 days",
+            strtotime($tgl_presensi)
+        )) : $tgl_presensi;
+        $jam_pulang = $hariini . " " . $jam;
+        $jamkerja_pulang = $tgl_pulang . " " . $jamkerja->jam_pulang;
+        $datakaryawan = DB::table('karyawan')->where('nik', $nik)->first();
+        $no_hp = $datakaryawan->no_hp;
         if ($radius > $lok_kantor->radius_cabang) {
             echo "error|Maaf Anda Berada Diluar Radius, Jarak Anda " . $radius . " meter dari Kantor|radius";
         } else {
             if ($cek > 0) {
-                if ($jam < $jamkerja->jam_pulang) {
+                if ($jam_pulang < $jamkerja_pulang) {
                     echo "error|Maaf belum waktunya pulang|out";
                 } else if (!empty($datapresensi->jam_out)) {
                     echo "error|Maaf anda sudah melakukan absen pulang sebelumnya|out";
@@ -455,12 +489,14 @@ class PresensiController extends Controller
             "November",
             "Desember"
         ];
-        return view('presensi.rekap', compact('namabulan'));
+        $departemen = DB::table('departemen')->get();
+        return view('presensi.rekap', compact('namabulan', 'departemen'));
     }
     public function cetakrekap(Request $request)
     {
         $bulan = $request->bulan;
         $tahun = $request->tahun;
+        $kode_dept = $request->kode_dept;
         $dari = $tahun . "-" . $bulan . "-01";
         $sampai = date("Y-m-t", strtotime($dari));
         $namabulan = [
@@ -532,7 +568,9 @@ class PresensiController extends Controller
                 $join->on('karyawan.nik', '=', 'presensi.nik');
             }
         );
-
+        if (!empty($kode_dept)) {
+            $query->where('kode_dept', $kode_dept);
+        }
         $query->orderBy('nama_lengkap');
         $rekap = $query->get();
 

@@ -136,7 +136,7 @@
             @php
                 $path_in = Storage::url('uploads/absensi/'.$d->foto_in);
                 $path_out = Storage::url('uploads/absensi/'.$d->foto_out);
-                $jamterlambat = selisih($d->jam_masuk, $d->jam_in);
+                $jamterlambat = hitungjamkerja($d->jam_masuk, $d->jam_in);
             @endphp
             <tr>
                 <td>{{ $loop->iteration }}</td>
@@ -164,9 +164,15 @@
                 </td>
                 <td>
                   @if ($d->jam_out != null)
-                      @php
-                          $jmljamkerja = selisih($d->jam_in,$d->jam_out);
-                      @endphp
+                    @php
+                    $tgl_masuk = $d->tgl_presensi;
+                    $tgl_pulang = $d->lintashari == 1 ? date('Y-m-d', strtotime
+                    ('+1 days', strtotime($tgl_masuk))) : $tgl_masuk;
+                    $jam_masuk = $tgl_masuk. ' ' .$d->jam_in;
+                    $jam_pulang = $tgl_pulang. ' ' .$d->jam_out;
+
+                    $jmljamkerja = hitungjamkerja($d->jam_masuk, $d->jam_pulang);
+                    @endphp
                       @else
                       @php
                           $jmljamkerja = 0;

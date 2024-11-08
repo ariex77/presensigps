@@ -33,6 +33,7 @@
                                     @endif
                             </div>
                         </div>
+                        @role('administrator', 'user')
                         <div class="row">
                             <div class="col-12">
                                 <a href="#" class="btn btn-primary" id="btnTambahKaryawan">
@@ -49,6 +50,7 @@
                                 </a>
                             </div>
                         </div>
+                        @endrole
                         <div class="row mt-2">
                             <div class="col-12">
                             <form action="/karyawan" method="GET">
@@ -131,7 +133,8 @@
                                 <td>{{ $d->kode_cabang }}</td>
                                 <td>
                                     <div class="d-flex">
-                                        <div>
+                                    <div>
+                                        @role('administrator', 'user')
                                         <a href="#" class="edit btn btn-info btn-sm" nik="{{ $d->nik }}">
                                         <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
                                         height="24"  viewBox="0 0 24 24"  fill="none"  
@@ -144,6 +147,7 @@
                                         <path d="M16 5l3 3" />
                                     </svg>
                                 </a>
+                                @endrole
                                 <a href="/konfigurasi/{{ $d->nik }}/setjamkerja" class="btn btn-success btn-sm ml-2">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
                                     height="24"  viewBox="0 0 24 24"  fill="none"  
@@ -179,6 +183,7 @@
                             </svg>
                             </a>
                         </div>
+                        @role('administrator', 'user')
                         <div>
                                     <form action="/karyawan/{{ $d->nik }}/delete" method="POST" style="margin-left:5px">
                                         @csrf
@@ -198,6 +203,7 @@
                                     </a>
                                     </form>
                                 </div>
+                                @endrole
                                     </div>
                                 </td>
                             </tr>
