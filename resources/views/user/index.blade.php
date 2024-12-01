@@ -92,6 +92,7 @@
                             <th>Email</th>
                             <th>Bidang</th>
                             <th>Role</th>
+                            <th>Kantor</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -103,6 +104,7 @@
                             <td>{{ $d->email }}</td>
                             <td>{{ $d->nama_dept }}</td>
                             <td>{{ ucwords($d->role) }}</td>
+                            <td>{{ $d->kode_cabang }}</td>
                             <td>
                                 <div class="btn-group">
                                     <a href="#" class="edit btn btn-info btn-sm" 
@@ -228,6 +230,18 @@
             </div>
             <div class="row mt-1">
                 <div class="col-12">
+                    <div class="form-group">
+                        <select name="kode_cabang" id="kode_cabang" class="form-select">
+                            <option value="">Kantor</option>
+                            @foreach ($cabang as $d)
+                                <option value="{{ $d->kode_cabang }}">{{ strtoupper($d->nama_cabang) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-1">
+                <div class="col-12">
                     <div class="input-icon">
                         <span class="input-icon-addon">
                           <!-- Download SVG icon from http://tabler-icons.io/i/user -->
@@ -315,6 +329,7 @@
             var email = $("#email").val();
             var kode_dept = $("#kode_dept").val();
             var role = $("#role").val();
+            var kode_cabang = $("#kode_cabang").val();
 
             if(nama_user==""){
                 Swal.fire({
@@ -354,6 +369,16 @@
                     confirmButtonText: "Ok!"
             }).then((result)=>{
                 $("#role").focus();
+            });
+            return false;
+        }else if(kode_cabang==""){
+                Swal.fire({
+                    title: "Warning!",
+                    text: "Kantor harus diisi",
+                    icon: "warning",
+                    confirmButtonText: "Ok!"
+            }).then((result)=>{
+                $("#kode_cabang").focus();
             });
             return false;
         }

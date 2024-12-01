@@ -271,4 +271,41 @@ class KonfigurasiController extends Controller
             return Redirect::back()->with(['warning' => 'Data gagal dihapus']);
         }
     }
+    public function storesetjamkerjabydate(Request $request)
+    {
+        $nik = $request->nik;
+        $tanggal = $request->tanggal;
+        $kode_jam_kerja = $request->kode_jam_kerja;
+
+        $data = [
+            'nik' => $nik,
+            'tanggal' => $tanggal,
+            'kode_jam_kerja' => $kode_jam_kerja
+        ];
+        try {
+            DB::table('konfigurasi_jamkerja_bydate')->insert($data);
+            return 0;
+        } catch (\Exception $e) {
+            return 1;
+        }
+    }
+    public function getjamkerjabydate($nik)
+    {
+        $konfigurasijamkerjabydate = DB::table('konfigurasi_jamkerja_bydate')
+            ->join('jam_kerja', 'konfigurasi_jamkerja_bydate.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+            ->where('nik', $nik)->get();
+        return view('konfigurasi.getjamkerjabydate', compact('konfigurasijamkerjabydate', 'nik'));
+    }
+    public function deletejamkerjabydate(Request $request)
+    {
+        $nik = $request->nik;
+        $tanggal = $request->tanggal;
+
+        try {
+            DB::table('konfigurasi_jamkerja_bydate')->where('nik', $nik)->where('tanggal', $tanggal)->delete();
+            return 0;
+        } catch (\Exception $e) {
+            return 1;
+        }
+    }
 }

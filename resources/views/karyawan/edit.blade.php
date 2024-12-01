@@ -1,4 +1,4 @@
-<form action="/karyawan/{{ $karyawan->nik }}/update" method="POST" id="frmKaryawan" enctype="multipart/form-data">
+<form action="/karyawan/{{ Crypt::encrypt($karyawan->nik) }}/update" method="POST" id="frmEditkaryawan" enctype="multipart/form-data">
     @csrf
     <div class="row">
         <div class="col-12">
@@ -21,7 +21,7 @@
                   <path d="M19 11l0 2" />
                 </svg>
                 </span>
-                <input type="text" readonly value="{{ $karyawan->nik }}" id="nik" class="form-control" placeholder="NIK" name="nik">
+                <input type="text" value="{{ $karyawan->nik }}" id="nik" class="form-control" placeholder="NIK" name="nik_baru">
               </div>
         </div>
     </div>
@@ -131,3 +131,76 @@
     </div>
 </div>
 </form>
+
+<script>
+    $("#frmEditkaryawan").submit(function(){
+            var nik = $("#frmEditkaryawan").find("#nik").val();
+            var nama_lengkap = $("#frmEditkaryawan").find("#nama_lengkap").val();
+            var jabatan = $("#frmEditkaryawan").find("#jabatan").val();
+            var no_hp = $("#frmEditkaryawan").find("#no_hp").val();
+            var kode_dept = $("#frmEditkaryawan").find("#kode_dept").val();
+            var kode_cabang = $("#frmEditkaryawan").find("#kode_cabang").val();
+            if(nik==""){
+                //alert('NIK harus diisi');
+                Swal.fire({
+                    title: 'Warning!',
+                    text: 'NIK harus diisi',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                    }).then((result)=>{
+                        $("#nik").focus();
+                    });
+                return false;
+            }else if(nama_lengkap==""){
+                Swal.fire({
+                    title: 'Warning!',
+                    text: 'Nama harus diisi',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                    }).then((result)=>{
+                        $("#nama_lengkap").focus();
+                    });
+                return false;
+            }else if(jabatan==""){
+                Swal.fire({
+                    title: 'Warning!',
+                    text: 'Jabatan harus diisi',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                    }).then((result)=>{
+                        $("#jabatan").focus();
+                    });
+                return false;
+            }else if(no_hp==""){
+                Swal.fire({
+                    title: 'Warning!',
+                    text: 'No. HP harus diisi',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                    }).then((result)=>{
+                        $("#no_hp").focus();
+                    });
+                return false;
+            }else if(kode_dept==""){
+                Swal.fire({
+                    title: 'Warning!',
+                    text: 'Bidang harus diisi',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                    }).then((result)=>{
+                        $("#kode_dept").focus();
+                    });
+                return false;
+            }else if(kode_cabang==""){
+                Swal.fire({
+                    title: 'Warning!',
+                    text: 'Kantor harus diisi',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                    }).then((result)=>{
+                        $("#kode_cabang").focus();
+                    });
+                return false;
+            }
+        });
+</script>

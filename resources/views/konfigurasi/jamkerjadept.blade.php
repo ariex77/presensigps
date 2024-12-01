@@ -148,11 +148,9 @@
             }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href =url;
-                Swal.fire(
-                'Deleted!',
-                'Data berhasil dihapus',
-                'success'
-                )
+                //Swal.fire(
+                //'Deleted!','Data berhasil dihapus','success'
+                //)
              }
             })
         });

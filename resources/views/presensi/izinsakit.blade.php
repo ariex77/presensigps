@@ -2,7 +2,7 @@
 @section('content')
 
 <div class="page-header d-print-none">
-    <div class="container-xl">
+    <div class="container-fluid">
       <div class="row g-2 align-items-center">
         <div class="col">
           <!-- Page pre-title -->
@@ -15,7 +15,7 @@
     </div>
   </div>
   <div class="page-body">
-    <div class="container-xl">
+    <div class="container-fluid">
         <div class="row">
             <div class="col-12">
                 @if(Session::get('success'))
@@ -84,7 +84,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-3">
+                        <div class="col-2">
                             <div class="input-icon mb-3">
                                 <span class="input-icon-addon">
                                   <!-- Download SVG icon from http://tabler-icons.io/i/user -->
@@ -128,7 +128,33 @@
                                 placeholder="Nama Karyawan" name="nama_lengkap">
                               </div>
                         </div>
-                        <div class="col-3">
+                        @role('administrator','user')
+                        <div class="col-2">
+                            <div class="form-group">
+                            <select name="kode_cabang" id="kode_cabang" class="form-select">
+                                <option value="">Semua Kantor</option>
+                                @foreach ($cabang as $d)
+                                    <option {{ Request('kode_cabang') == $d->kode_cabang ? 'selected' : '' }}
+                                    value="{{ $d->kode_cabang }}">{{ strtoupper($d->nama_cabang) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group">
+                        <select name="kode_dept" id="kode_dept" class="form-select">
+                            <option value="">Semua Bidang</option>
+                            @foreach ($departemen as $d)
+                                <option {{ Request('kode_dept') == $d->kode_dept ? 'selected' : '' }} 
+                                    value="{{ $d->kode_dept }}">{{ strtoupper($d->nama_dept) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endrole
+                        <div class="col-2">
                             <div class="form-group">
                                 <select name="status_approved" id="status_approved" class="form-select">
                                     <option value="">Pilih Status</option>
@@ -138,7 +164,8 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-3">
+                    
+                        <div class="col-1">
                             <div class="form-group">
                                 <button class="btn btn-primary" type="submit">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  
@@ -150,7 +177,7 @@
                                     <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
                                     <path d="M21 21l-6 -6" />
                                 </svg>
-                                Cari Data
+                                
                                 </button>
                             </div>
                         </div>
@@ -169,6 +196,8 @@
                         <th>NIK</th>
                         <th>Nama Karyawan</th>
                         <th>Jabatan</th>
+                        <th>Bidang</th>
+                        <th>Kantor</th>
                         <th>Status</th>
                         <th>Keterangan</th>
                         <th>Approval</th>
@@ -189,6 +218,8 @@
                             <td>{{ $d->nik }}</td>
                             <td>{{ $d->nama_lengkap }}</td>
                             <td>{{ $d->jabatan }}</td>
+                            <td>{{ $d->kode_dept }}</td>
+                            <td>{{ $d->kode_cabang }}</td>
                             <td>{{ $d->status =="i" ? "Izin" : "Sakit" }}</td>
                             <td>{{ $d->keterangan }}</td>
                             <td>

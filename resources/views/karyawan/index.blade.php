@@ -55,23 +55,36 @@
                             <div class="col-12">
                             <form action="/karyawan" method="GET">
                             <div class="row">
-                                <div class="col-6">
+                                <div class="col-4">
                                     <div class="form-group">
                                         <input type="text" name= "nama_karyawan" id="nama_karyawan" 
                                         class="form control" placeholder="Nama Pegawai" 
                                         value="{{ Request('nama_karyawan') }}">
                                     </div>
                                 </div>
-                                
-                                <div class="col-4">
+                                @role('administrator','user')
+                                <div class="col-3">
+                                    <select name="kode_dept" id="kode_dept" class="form-select">
+                                        <option value="">Bidang</option>
+                                        @foreach ($departemen as $d)
+                                            <option {{ Request('kode_dept') == $d->kode_dept ? 'selected' :'' }}
+                                                value="{{ $d->kode_dept }}">{{ $d->nama_dept }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <div class="form-group">
                                     <select name="kode_cabang" id="kode_cabang" class="form-select">
                                         <option value="">Kantor</option>
                                         @foreach ($cabang as $d)
                                             <option {{ Request('kode_cabang') == $d->kode_cabang ? 'selected' :'' }}
-                                                value="{{ $d->kode_cabang }}">{{ $d->nama_cabang }}</option>
+                                                value="{{ $d->kode_cabang }}">{{ strtoupper($d->nama_cabang) }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
+                            </div>
+                                @endrole
                             <div class="col-2">
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-primary">
@@ -416,11 +429,9 @@
             }).then((result) => {
             if (result.isConfirmed) {
                 form.submit();
-                Swal.fire(
-                'Deleted!',
-                'Data berhasil dihapus',
-                'success'
-                )
+                //Swal.fire(
+                //'Deleted!','Data berhasil dihapus','success'
+                //)
              }
             })
         });
@@ -430,7 +441,8 @@
             var nama_lengkap = $("#nama_lengkap").val();
             var jabatan = $("#jabatan").val();
             var no_hp = $("#no_hp").val();
-            var kode_dept =$("frmKaryawan").find("#kode_dept").val();
+            var kode_dept = $("#frmKaryawan").find("#kode_dept").val();
+            var kode_cabang = $("#frmKaryawan").find("#kode_cabang").val();
             if(nik==""){
                 //alert('NIK harus diisi');
                 Swal.fire({
@@ -480,6 +492,16 @@
                     confirmButtonText: 'Ok'
                     }).then((result)=>{
                         $("#kode_dept").focus();
+                    });
+                return false;
+            }else if(kode_cabang==""){
+                Swal.fire({
+                    title: 'Warning!',
+                    text: 'Kantor harus diisi',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok'
+                    }).then((result)=>{
+                        $("#kode_cabang").focus();
                     });
                 return false;
             }

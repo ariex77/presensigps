@@ -25,8 +25,11 @@
         <td>{{ $loop->iteration }}</td>
         <td>{{ $d->nik }}</td>
         <td>{{ $d->nama_lengkap }}</td>
+        <td>{{ $d->kode_cabang }}</td>
         <td>{{ $d->kode_dept }}</td>
-        <td>{{ $d->nama_jam_kerja }} ({{ $d->jam_masuk }} s/d {{ $d->jam_pulang }})</td>
+        <td>
+            {{ $d->nama_jam_kerja }} ({{ $d->jam_masuk }} s/d {{ $d->jam_pulang }})
+        </td>
         <td>{{ $d->jam_in }}</td>
         <td>
             <img src="{{ url($foto_in) }}" class="avatar" alt="">
@@ -82,12 +85,20 @@
         <td>{{ $loop->iteration }}</td>
         <td>{{ $d->nik }}</td>
         <td>{{ $d->nama_lengkap }}</td>
+        <td>{{ $d->kode_cabang }}</td>
         <td>{{ $d->kode_dept }}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>
+            <span class="badge bg-danger">Belum Absen</span>
+        </td>
+        <td></td><td>
+            <span class="badge bg-danger">Belum Absen</span>
+        </td>
+        <td>
+            <span class="badge bg-danger">Belum Absen</span>
+        </td>
+        <td>
+            <span class="badge bg-danger">Belum Absen</span>
+        </td>
         <td>
             @if ($d->status=="i")
                 <span class="badge bg-warning">I</span>

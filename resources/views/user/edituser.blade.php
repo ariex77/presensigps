@@ -69,6 +69,19 @@
     </div>
     <div class="row mt-1">
         <div class="col-12">
+            <div class="form-group">
+                <select name="kode_cabang" id="kode_cabang" class="form-select">
+                    <option value="">Kantor</option>
+                    @foreach ($cabang as $d)
+                        <option {{ $user->kode_cabang == $d->kode_cabang ? 'selected' : '' }} 
+                            value="{{ $d->kode_cabang }}">{{ strtoupper($d->nama_cabang) }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-1">
+        <div class="col-12">
             <div class="input-icon">
                 <span class="input-icon-addon">
                   <!-- Download SVG icon from http://tabler-icons.io/i/user -->

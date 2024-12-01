@@ -21,7 +21,24 @@
                     <div class="card-body">
                         <form action="/presensi/cetakrekap" target="_blank" method="POST">
                             @csrf
-                            <div class="row">
+                            @role('administrator','user')
+                            <div class="row mt-1">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <select name="kode_cabang" id="kode_cabang" class="form-select">
+                                            <option value="">Semua Kantor</option>
+                                            @foreach ($cabang as $d)
+                                                <option value="{{ $d->kode_cabang }}">{{ strtoupper($d->nama_cabang) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            @else
+                            <input type="hidden" name="kode_cabang" 
+                            value="{{ Auth::guard('user')->user()->kode_cabang }}">
+                            @endrole
+                            <div class="row mt-2">
                                 <div class="col-12">
                                     <div class="form-group">
                                         <select name="bulan" id="bulan" class="form-select" required>
@@ -49,6 +66,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @role('administrator','user')
                             <div class="row mt-2">
                                 <div class="col-12">
                                     <div class="form-group">
@@ -61,6 +79,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @else
+                            <input type="hidden" name="kode_dept" 
+                            value="{{ Auth::guard('user')->user()->kode_dept }}">
+                            @endrole
                             <div class="row mt-2">
                                 <div class="col-6">
                                     <div class="form-group">

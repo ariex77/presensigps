@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Karyawan;
 use App\Models\Pengajuanizin;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -377,29 +378,89 @@ class PresensiController extends Controller
 
     public function monitoring()
     {
-        return view('presensi.monitoring');
+        $cabang = DB::table('cabang')->orderBy('kode_cabang')->get();
+        $departemen = DB::table('departemen')->orderBy('kode_dept')->get();
+        return view('presensi.monitoring', compact('cabang', 'departemen'));
     }
     public function getpresensi(Request $request)
     {
-        $tanggal = $request->tanggal;
-        $presensi = DB::table('presensi')
-            ->select(
-                'presensi.*',
-                'nama_lengkap',
-                'karyawan.kode_dept',
-                'jam_masuk',
-                'nama_jam_kerja',
-                'jam_masuk',
-                'jam_pulang',
-                'keterangan'
-            )
-            ->leftJoin('jam_kerja', 'presensi.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
-            ->leftJoin('pengajuan_izin', 'presensi.kode_izin', '=', 'pengajuan_izin.kode_izin')
-            ->join('karyawan', 'presensi.nik', '=', 'karyawan.nik')
-            ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
-            ->where('tgl_presensi', $tanggal)
-            ->get();
+        $kode_dept = Auth::guard('user')->user()->kode_dept;
+        $kode_cabang = Auth::guard('user')->user()->kode_cabang;
+        $user = User::find(Auth::guard('user')->user()->id);
 
+        $tanggal = $request->tanggal;
+
+        $query = Karyawan::query();
+        $query->selectRaw(
+            'karyawan.nik, nama_lengkap, karyawan.kode_dept, karyawan.kode_cabang, id,jam_in,jam_out,foto_in,foto_out,lokasi_in,lokasi_out,datapresensi.status,jam_masuk,nama_jam_kerja,jam_pulang,keterangan'
+        );
+        $query->leftJoin(
+            DB::raw("(
+                SELECT 
+                presensi.nik,id,jam_in,jam_out,foto_in,foto_out,lokasi_in,lokasi_out,presensi.status,jam_masuk,nama_jam_kerja,jam_pulang,keterangan
+                FROM presensi
+                LEFT JOIN jam_kerja ON presensi.kode_jam_kerja = jam_kerja.kode_jam_kerja
+                LEFT JOIN pengajuan_izin ON presensi.kode_izin = pengajuan_izin.kode_izin
+                WHERE tgl_presensi = '$tanggal'
+            )datapresensi"),
+            function ($join) {
+                $join->on('karyawan.nik', '=', 'datapresensi.nik');
+            }
+        );
+
+        if (!empty($request->kode_cabang)) {
+            $query->where('karyawan.kode_cabang', $request->kode_cabang);
+        }
+        if (!empty($request->kode_dept)) {
+            $query->where('karyawan.kode_dept', $request->kode_dept);
+        }
+
+        if ($user->hasRole('admin bidang', 'user')) {
+            $query->where('karyawan.kode_cabang', $kode_cabang);
+            $query->where('karyawan.kode_dept', $kode_dept);
+        }
+        $query->orderBy('nama_lengkap');
+        $presensi = $query->get();
+
+        //if ($user->hasRole('admin bidang')) {
+        //    $presensi = DB::table('presensi')
+        //        ->select(
+        //            'presensi.*',
+        //            'nama_lengkap',
+        //            'karyawan.kode_dept',
+        //            'jam_masuk',
+        //            'nama_jam_kerja',
+        //            'jam_masuk',
+        //            'jam_pulang',
+        //            'keterangan'
+        //        )
+        //        ->leftJoin('jam_kerja', 'presensi.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+        //        ->leftJoin('pengajuan_izin', 'presensi.kode_izin', '=', 'pengajuan_izin.kode_izin')
+        //        ->join('karyawan', 'presensi.nik', '=', 'karyawan.nik')
+        //        ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+        //        ->where('tgl_presensi', $tanggal)
+        //        ->where('karyawan.kode_dept', $kode_dept)
+        //        ->where('karyawan.kode_cabang', $kode_cabang)
+        //        ->get();
+        //} else if ($user->hasRole('administrator')) {
+        //   $presensi = DB::table('presensi')
+        //       ->select(
+        //            'presensi.*',
+        //            'nama_lengkap',
+        //            'karyawan.kode_dept',
+        //            'jam_masuk',
+        //            'nama_jam_kerja',
+        //            'jam_masuk',
+        //           'jam_pulang',
+        //            'keterangan'
+        //        )
+        //        ->leftJoin('jam_kerja', 'presensi.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+        //        ->leftJoin('pengajuan_izin', 'presensi.kode_izin', '=', 'pengajuan_izin.kode_izin')
+        //        ->join('karyawan', 'presensi.nik', '=', 'karyawan.nik')
+        //        ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+        //        ->where('tgl_presensi', $tanggal)
+        //        ->get();
+        //}
         return view('presensi.getpresensi', compact('presensi'));
     }
     public function tampilkanpeta(Request $request)
@@ -412,6 +473,9 @@ class PresensiController extends Controller
     }
     public function laporan()
     {
+        $kode_dept = Auth::guard('user')->user()->kode_dept;
+        $kode_cabang = Auth::guard('user')->user()->kode_cabang;
+        $user = User::find(Auth::guard('user')->user()->id);
         $namabulan = [
             "",
             "Januari",
@@ -427,7 +491,15 @@ class PresensiController extends Controller
             "November",
             "Desember"
         ];
-        $karyawan = DB::table('karyawan')->orderBy('nama_lengkap')->get();
+        if ($user->hasRole('admin bidang')) {
+            $karyawan = DB::table('karyawan')
+                ->where('kode_dept', $kode_dept)
+                ->where('kode_cabang', $kode_cabang)
+                ->orderBy('nama_lengkap')->get();
+        } else if ($user->hasRole('administrator')) {
+            $karyawan = DB::table('karyawan')
+                ->orderBy('nama_lengkap')->get();
+        }
         return view('presensi.laporan', compact('namabulan', 'karyawan'));
     }
     public function cetaklaporan(Request $request)
@@ -490,13 +562,15 @@ class PresensiController extends Controller
             "Desember"
         ];
         $departemen = DB::table('departemen')->get();
-        return view('presensi.rekap', compact('namabulan', 'departemen'));
+        $cabang = DB::table('cabang')->orderBy('kode_cabang')->get();
+        return view('presensi.rekap', compact('namabulan', 'departemen', 'cabang'));
     }
     public function cetakrekap(Request $request)
     {
         $bulan = $request->bulan;
         $tahun = $request->tahun;
         $kode_dept = $request->kode_dept;
+        $kode_cabang = $request->kode_cabang;
         $dari = $tahun . "-" . $bulan . "-01";
         $sampai = date("Y-m-t", strtotime($dari));
         $namabulan = [
@@ -537,7 +611,7 @@ class PresensiController extends Controller
             $i++;
             $dari = date("Y-m-d", strtotime("+1 day", strtotime($dari)));
         }
-        //dd($select_date);
+
         $jmlhari = count($rangetanggal);
         $lastrange = $jmlhari - 1;
         $sampai = $rangetanggal[$lastrange];
@@ -571,9 +645,11 @@ class PresensiController extends Controller
         if (!empty($kode_dept)) {
             $query->where('kode_dept', $kode_dept);
         }
+        if (!empty($kode_cabang)) {
+            $query->where('kode_cabang', $kode_cabang);
+        }
         $query->orderBy('nama_lengkap');
         $rekap = $query->get();
-
 
         if (isset($_POST['exportexcel'])) {
             $time = date("d-M-Y H:i:s");
@@ -585,6 +661,9 @@ class PresensiController extends Controller
     }
     public function izinsakit(Request $request)
     {
+        $kode_dept = Auth::guard('user')->user()->kode_dept;
+        $kode_cabang = Auth::guard('user')->user()->kode_cabang;
+        $user = User::find(Auth::guard('user')->user()->id);
         $query = Pengajuanizin::query();
         $query->select(
             'kode_izin',
@@ -595,7 +674,9 @@ class PresensiController extends Controller
             'jabatan',
             'status',
             'status_approved',
-            'keterangan'
+            'keterangan',
+            'karyawan.kode_cabang',
+            'karyawan.kode_dept',
         );
         $query->join('karyawan', 'pengajuan_izin.nik', '=', 'karyawan.nik',);
         if (!empty($request->dari) && !empty($request->sampai)) {
@@ -607,14 +688,27 @@ class PresensiController extends Controller
         if (!empty($request->nama_lengkap)) {
             $query->where('nama_lengkap', 'like', '%' . $request->nama_lengkap . '%');
         }
-        if ($request->status_approved === '0' || $request->status_approved === '1' || $request->status_approved === '2') {
+        if ($request->status_approved == '0' || $request->status_approved == '1' || $request->status_approved == '2') {
             $query->where('status_approved', $request->status_approved);
+        }
+        if ($user->hasRole('admin bidang', 'user')) {
+            $query->where('karyawan.kode_dept', $kode_dept);
+            $query->where('karyawan.kode_cabang', $kode_cabang);
+        }
+        if (!empty($request->kode_cabang)) {
+            $query->where('karyawan.kode_cabang', $request->kode_cabang);
+        }
+        if (!empty($request->kode_dept)) {
+            $query->where('karyawan.kode_dept', $request->kode_dept);
         }
 
         $query->orderBy('tgl_izin_dari', 'desc');
         $izinsakit = $query->paginate(10);
         $izinsakit->appends($request->all());
-        return view('presensi.izinsakit', compact('izinsakit'));
+
+        $cabang = DB::table('cabang')->orderBy('kode_cabang')->get();
+        $departemen = DB::table('departemen')->orderBy('kode_dept')->get();
+        return view('presensi.izinsakit', compact('izinsakit', 'cabang', 'departemen'));
     }
     public function approveizinsakit(Request $request)
     {

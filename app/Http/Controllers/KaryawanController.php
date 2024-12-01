@@ -3,18 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\Karyawan;
+use App\Models\User;
 use Illuminate\Container\Attributes\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Auth;
 use PhpParser\Node\Stmt\Catch_;
 
 class KaryawanController extends Controller
 {
     public function index(Request $request)
     {
+        $kode_dept = Auth::guard('user')->user()->kode_dept;
+        $kode_cabang = Auth::guard('user')->user()->kode_cabang;
+        $user = User::find(Auth::guard('user')->user()->id);
         $query = Karyawan::query();
         $query->select('karyawan.*', 'nama_dept');
         $query->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept');
@@ -24,6 +29,13 @@ class KaryawanController extends Controller
         }
         if (!empty($request->kode_dept)) {
             $query->where('karyawan.kode_dept', $request->kode_dept);
+        }
+        if (!empty($request->kode_cabang)) {
+            $query->where('karyawan.kode_cabang', $request->kode_cabang);
+        }
+        if ($user->hasRole('admin bidang', 'user')) {
+            $query->where('karyawan.kode_dept', $kode_dept);
+            $query->where('karyawan.kode_cabang', $kode_cabang);
         }
         $karyawan = $query->paginate(10);
 
@@ -67,7 +79,7 @@ class KaryawanController extends Controller
             }
         } catch (\Exception $e) {
             if ($e->getCode() == 23000) {
-                $message = " Data dengan NIK" . $nik . " sudah ada";
+                $message = " Data dengan NIK " . $nik . " sudah ada";
             } else {
                 $message = "Hubungi Tim IT";
             }
@@ -84,7 +96,8 @@ class KaryawanController extends Controller
     }
     public function update($nik, Request $request)
     {
-        $nik = $request->nik;
+        $nik = Crypt::decrypt($nik);
+        $nik_baru = $request->nik_baru;
         $nama_lengkap = $request->nama_lengkap;
         $jabatan = $request->jabatan;
         $no_hp = $request->no_hp;
@@ -97,8 +110,14 @@ class KaryawanController extends Controller
         } else {
             $foto = $old_foto;
         }
+
+        $ceknik = DB::table('karyawan')->where('nik', $nik)->count();
+        if ($ceknik > 0) {
+            return Redirect::back()->with(['warning' => 'NIK sudah digunakan']);
+        }
         try {
             $data = [
+                'nik' => $nik_baru,
                 'nama_lengkap' => $nama_lengkap,
                 'jabatan' => $jabatan,
                 'no_hp' => $no_hp,

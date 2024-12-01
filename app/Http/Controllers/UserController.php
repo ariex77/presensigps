@@ -16,7 +16,7 @@ class UserController extends Controller
         $departemen = DB::table('departemen')->orderBy('kode_dept')->get();
         $role = DB::table('roles')->orderBy('id')->get();
         $query = User::query();
-        $query->select('users.id', 'users.name', 'email', 'nama_dept', 'roles.name as role');
+        $query->select('users.id', 'users.name', 'email', 'nama_dept', 'roles.name as role', 'kode_cabang');
         $query->join('departemen', 'users.kode_dept', "=", 'departemen.kode_dept');
         $query->join('model_has_roles', 'users.id', "=", 'model_has_roles.model_id');
         $query->join('roles', 'model_has_roles.role_id', "=", 'roles.id');
@@ -25,7 +25,10 @@ class UserController extends Controller
         }
         $users = $query->paginate(10);
         $users->appends(request()->all());
-        return view('user.index', compact('users', 'departemen', 'role'));
+
+        $cabang = DB::table('cabang')->orderBy('kode_cabang')->get();
+
+        return view('user.index', compact('users', 'departemen', 'role', 'cabang'));
     }
     public function store(Request $request)
     {
@@ -33,6 +36,7 @@ class UserController extends Controller
         $email = $request->email;
         $kode_dept = $request->kode_dept;
         $role = $request->role;
+        $kode_cabang = $request->kode_cabang;
         $password = bcrypt($request->password);
 
         DB::beginTransaction();
@@ -41,6 +45,7 @@ class UserController extends Controller
                 'name' => $nama_user,
                 'email' => $email,
                 'kode_dept' => $kode_dept,
+                'kode_cabang' => $kode_cabang,
                 'password' => $password
             ]);
             $user->assignRole($role);
@@ -58,10 +63,11 @@ class UserController extends Controller
         $id_user = $request->id_user;
         $departemen = DB::table('departemen')->orderBy('kode_dept')->get();
         $role = DB::table('roles')->orderBy('id')->get();
+        $cabang = DB::table('cabang')->orderBy('kode_cabang')->get();
         $user = DB::table('users')
             ->join('model_has_roles', 'users.id', "=", 'model_has_roles.model_id')
             ->where('id', $id_user)->first();
-        return view('konfigurasi/edituser', compact('departemen', 'role', 'user'));
+        return view('user.edituser', compact('departemen', 'role', 'user', 'cabang'));
     }
     public function update(Request $request, $id_user)
     {
@@ -69,6 +75,7 @@ class UserController extends Controller
         $email = $request->email;
         $kode_dept = $request->kode_dept;
         $role = $request->role;
+        $kode_cabang = $request->kode_cabang;
         $password = bcrypt($request->password);
 
         if (isset($request->password)) {
@@ -76,6 +83,7 @@ class UserController extends Controller
                 'name' => $nama_user,
                 'email' => $email,
                 'kode_dept' => $kode_dept,
+                'kode_cabang' => $kode_cabang,
                 'password' => $password
             ];
         } else {
@@ -83,6 +91,7 @@ class UserController extends Controller
                 'name' => $nama_user,
                 'email' => $email,
                 'kode_dept' => $kode_dept,
+                'kode_cabang' => $kode_cabang
             ];
         }
         DB::beginTransaction();
