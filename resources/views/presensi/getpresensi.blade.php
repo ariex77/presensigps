@@ -32,23 +32,18 @@
         </td>
         <td>{{ $d->jam_in }}</td>
         <td>
-            <img src="{{ url($foto_in) }}" class="avatar" alt="">
+            @if ($d->foto_in != null)
+                <img src="{{ url($foto_in) }}" class="avatar" alt="">
+            @else
+                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-photo-cancel"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 8h.01" /><path d="M12.5 21h-6.5a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v6.5" /><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l3 3" /><path d="M14 14l1 -1c.616 -.593 1.328 -.792 2.008 -.598" /><path d="M19 19m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M17 21l4 -4" /></svg>
+            @endif
         </td>
         <td>{!! $d->jam_out != null ? $d->jam_out : '<span class="badge bg-danger"> Belum absen</span>' !!}</td>
         <td>
-            @if ($d->jam_out !== null)
+            @if ($d->foto_out != null)
                 <img src="{{ url($foto_out) }}" class="avatar" alt="">
-                @else
-                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
-                height="24"  viewBox="0 0 24 24"  fill="none"  
-                stroke="currentColor"  stroke-width="2"  
-                stroke-linecap="round"  stroke-linejoin="round"  
-                class="icon icon-tabler icons-tabler-outline icon-tabler-hourglass-high">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                <path d="M6.5 7h11" />
-                <path d="M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z" />
-                <path d="M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z" />
-            </svg>
+            @else
+                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-photo-cancel"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 8h.01" /><path d="M12.5 21h-6.5a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v6.5" /><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l3 3" /><path d="M14 14l1 -1c.616 -.593 1.328 -.792 2.008 -.598" /><path d="M19 19m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M17 21l4 -4" /></svg>
             @endif
         </td>
         <td>{{ $d->status }}</td>
@@ -63,7 +58,8 @@
             @endif
         </td>
         <td>
-            <a href="#" class="btn btn-primary tampilkanpeta" id="{{ $d->id }}">
+            @if ($d->lokasi_in != null)
+                <a href="#" class="btn btn-sm tampilkanpeta" id="{{ $d->id }}">
                 <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  
                 height="24"  viewBox="0 0 24 24"  fill="none"  
                 stroke="currentColor"  stroke-width="2"  
@@ -77,6 +73,12 @@
                 2.121 1.879c1.051 -.89 1.759 -1.516 2.121 -1.879z" />
                 <path d="M19 18v.01" />
             </svg>
+            </a>
+            @endif
+            
+            <a href="#" class="btn btn-sm btn-success koreksipresensi" nik="{{ $d->nik }}">
+                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 15l8.385 -8.415a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3z" /><path d="M16 5l3 3" /><path d="M9 7.07a7 7 0 0 0 1 13.93a7 7 0 0 0 6.929 -6" />
+                </svg>
             </a>
         </td>
     </tr>
@@ -104,12 +106,19 @@
                 <span class="badge bg-warning">I</span>
             @elseif($d->status=="s")
             <span class="badge bg-info">S</span>
+            @elseif($d->status=="a")
+            <span class="badge bg-danger">A</span>
             @elseif($d->status=="c")
             <span class="badge" style="background-color: #a600ff">C</span>
             @endif
         </td>
         <td>{{ $d->keterangan }}</td>
-        <td></td>
+        <td>
+            <a href="#" class="btn btn-sm btn-success koreksipresensi" nik="{{ $d->nik }}">
+                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 15l8.385 -8.415a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3z" /><path d="M16 5l3 3" /><path d="M9 7.07a7 7 0 0 0 1 13.93a7 7 0 0 0 6.929 -6" />
+                </svg>
+            </a>
+        </td>
     </tr>
 @endif
 @endforeach
@@ -131,6 +140,27 @@
                 }
             });
             $("#modal-tampilkanpeta").modal("show");
+        });
+
+        $(".koreksipresensi").click(function(e){
+            var nik = $(this).attr("nik")
+            var tanggal = "{{ $tanggal }}";
+
+            
+            $.ajax({
+                type:'POST',
+                url:'/koreksipresensi',
+                data:{
+                    _token:"{{ csrf_token() }}",
+                    nik:nik,
+                    tanggal:tanggal
+                },
+                cache:false,
+                success:function(respond){
+                    $("#loadkoreksipresensi").html(respond);
+                }
+            });
+            $("#modal-koreksipresensi").modal("show");
         });
     });
 </script>

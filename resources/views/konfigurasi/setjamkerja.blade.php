@@ -42,12 +42,13 @@
                         <li class="nav-item" role="presentation">
                           <a href="#setjamkerjabydate" class="nav-link" data-bs-toggle="tab" aria-selected="false" tabindex="-1" role="tab"><!-- Download SVG icon from http://tabler-icons.io/i/user -->
                             <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-calendar-stats"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" /><path d="M18 14v4h4" /><path d="M18 18m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M15 3v4" /><path d="M7 3v4" /><path d="M3 11h16" /></svg>
-                            Set jam kerja by date</a>
+                            Set jam kerja by date
+                        </a>
                         </li>
                       </ul>
                     </div>
                     <div class="card-body">
-                        <div class="tab-content">
+                    <div class="tab-content">
                       <div class="tab-pane active show" id="setjamkerjaharian" role="tabpanel">
                        <form action="/konfigurasi/storesetjamkerja" method="POST">
                     @csrf
@@ -159,61 +160,14 @@
                     </table>
                     <button class="btn btn-primary w-100" type="submit">Simpan</button>
                 </form>
-                        
-                      </div>
-                      <div class="tab-pane" id="setjamkerjabydate" role="tabpanel">
-                        <div class="row">
-                            <div class="col-12">
-                                
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="input-icon mb-3">
-                                        <span class="input-icon-addon">
-                                          <!-- Download SVG icon from http://tabler-icons.io/i/user -->
-                                          <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-calendar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M11 15h1" /><path d="M12 15v3" /></svg>
-                                        </span>
-                                        <input type="text" id="tanggal" class="form-control" placeholder="Tanggal" name="tanggal">
-                                      </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="form-group">
-                                        <select name="kode_jam_kerja" id="kode_jam_kerja" class="form-select">
-                                            <option value="">Pilih jam kerja</option>
-                                            @foreach ($jamkerja as $d)
-                                            <option value="{{ $d->kode_jam_kerja }}">{{ $d->nama_jam_kerja }}</option>
-                                        @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="form-group">
-                                        <button id="tambahjamkerja" class="btn btn-primary">
-                                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-calendar-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12.5 21h-6.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v5" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M16 19h6" /><path d="M19 16v6" /></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                       
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <th>No.</th>
-                                        <th>Tanggal</th>
-                                        <th>Jam Kerja</th>
-                                        <th>#</th>
-                                    </thead>
-                                    <tbody id="loadjamkerjabydate"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                      </div>
-                    </div>
+                </div>
+                    <div class="tab-pane" id="setjamkerjabydate" role="tabpanel">
+                        @include('konfigurasi.setjamkerjabydate')
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
             <div class="col-6">
                 <table class="table">
                     <thead>
@@ -316,9 +270,13 @@
         });
         function loadjamkerjabydate(){
             var nik = "{{ $karyawan->nik }}";
-            $("#loadjamkerjabydate").load('/konfigurasi/'+nik+'/getjamkerjabydate');
+            var bulan = $("#bulan").val();
+            var tahun = $("#tahun").val();
+            $("#loadjamkerjabydate").load('/konfigurasi/'+nik+'/'+bulan+'/'+tahun+'/getjamkerjabydate');
         }
-
+        $("#bulan, #tahun").change(function(e){
+            loadjamkerjabydate();
+        });
         loadjamkerjabydate();
     });
 </script>

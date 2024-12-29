@@ -111,7 +111,10 @@ class KaryawanController extends Controller
             $foto = $old_foto;
         }
 
-        $ceknik = DB::table('karyawan')->where('nik', $nik)->count();
+        $ceknik = DB::table('karyawan')
+            ->where('nik', $nik_baru)
+            ->where('nik', '!=', $nik)
+            ->count();
         if ($ceknik > 0) {
             return Redirect::back()->with(['warning' => 'NIK sudah digunakan']);
         }
@@ -159,6 +162,44 @@ class KaryawanController extends Controller
             return Redirect::back()->with(['success' => 'Password berhasil direset']);
         } else {
             return Redirect::back()->with(['warning' => 'Password gagal direset']);
+        }
+    }
+    public function lockandunlocklocation($nik)
+    {
+        try {
+            $karyawan = DB::table('karyawan')->where('nik', $nik)->first();
+            $status_location = $karyawan->status_location;
+            if ($status_location == '1') {
+                DB::table('karyawan')->where('nik', $nik)->update([
+                    'status_location' => '0'
+                ]);
+            } else {
+                DB::table('karyawan')->where('nik', $nik)->update([
+                    'status_location' => '1'
+                ]);
+            }
+            return Redirect::back()->with(['success' => 'Status location berhasil diupdate']);
+        } catch (\Exception $e) {
+            return Redirect::back()->with(['warning' => 'Status location gagal diupdate']);
+        }
+    }
+    public function lockandunlockjamkerja($nik)
+    {
+        try {
+            $karyawan = DB::table('karyawan')->where('nik', $nik)->first();
+            $status_jam_kerja = $karyawan->status_jam_kerja;
+            if ($status_jam_kerja == '1') {
+                DB::table('karyawan')->where('nik', $nik)->update([
+                    'status_jam_kerja' => '0'
+                ]);
+            } else {
+                DB::table('karyawan')->where('nik', $nik)->update([
+                    'status_jam_kerja' => '1'
+                ]);
+            }
+            return Redirect::back()->with(['success' => 'Status Jam Kerja berhasil diupdate']);
+        } catch (\Exception $e) {
+            return Redirect::back()->with(['warning' => 'Status Jam Kerja gagal diupdate']);
         }
     }
 }

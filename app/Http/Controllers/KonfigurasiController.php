@@ -107,12 +107,13 @@ class KonfigurasiController extends Controller
         $karyawan = DB::table('karyawan')->where('nik', $nik)->first();
         $jamkerja = DB::table('jam_kerja')->orderBy('nama_jam_kerja')->get();
         $cekjamkerja = DB::table('konfigurasi_jamkerja')->where('nik', $nik)->count();
+        $bulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
         if ($cekjamkerja > 0) {
             $setjamkerja = DB::table('konfigurasi_jamkerja')->where('nik', $nik)->get();
-            return view('konfigurasi.editsetjamkerja', compact('karyawan', 'jamkerja', 'setjamkerja'));
+            return view('konfigurasi.editsetjamkerja', compact('karyawan', 'jamkerja', 'setjamkerja', 'bulan'));
         } else {
-            return view('konfigurasi.setjamkerja', compact('karyawan', 'jamkerja'));
+            return view('konfigurasi.setjamkerja', compact('karyawan', 'jamkerja', 'bulan'));
         }
     }
     public function storesetjamkerja(Request $request)
@@ -289,11 +290,14 @@ class KonfigurasiController extends Controller
             return 1;
         }
     }
-    public function getjamkerjabydate($nik)
+    public function getjamkerjabydate($nik, $bulan, $tahun)
     {
         $konfigurasijamkerjabydate = DB::table('konfigurasi_jamkerja_bydate')
             ->join('jam_kerja', 'konfigurasi_jamkerja_bydate.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
-            ->where('nik', $nik)->get();
+            ->where('nik', $nik)
+            ->whereRaw('MONTH(tanggal)="' . $bulan . '"')
+            ->whereRaw('YEAR(tanggal)="' . $tahun . '"')
+            ->get();
         return view('konfigurasi.getjamkerjabydate', compact('konfigurasijamkerjabydate', 'nik'));
     }
     public function deletejamkerjabydate(Request $request)

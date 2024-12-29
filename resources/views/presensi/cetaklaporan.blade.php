@@ -64,6 +64,10 @@
     width: 40px;
     height: 30px;
   }
+  body.A4.landscape .sheet{
+    width: 297mm !important;
+    height: auto !important;
+  }
   </style>
 </head>
 

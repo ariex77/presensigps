@@ -66,7 +66,6 @@ class CutiController extends Controller
             return Redirect::back()->with(['success' => 'Data berhasil dihapus']);
         } catch (\Exception $e) {
             return Redirect::back()->with(['warning' => 'Data gagal dihapus' . $e->getMessage()]);
-            //throw $th;
         }
     }
 }

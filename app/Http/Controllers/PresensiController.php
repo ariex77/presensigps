@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\TryCatch;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -59,8 +60,9 @@ class PresensiController extends Controller
         return $hari_ini;
     }
 
-    public function create()
+    public function create($kode_jam_kerja)
     {
+        $kode_jam_kerja = $kode_jam_kerja != "null" ? Crypt::decrypt($kode_jam_kerja) : $kode_jam_kerja;
         $nik = Auth::guard('karyawan')->user()->nik;
         $hariini = date("Y-m-d");
         $jamsekarang = date("H:i");
@@ -80,36 +82,60 @@ class PresensiController extends Controller
         }
         $namahari = $this->gethari(date('D', strtotime($hariini)));
         $kode_dept = Auth::guard('karyawan')->user()->kode_dept;
-        $cek = DB::table('presensi')->where('tgl_presensi', $hariini)->where('nik', $nik)->count();
+        $presensi = DB::table('presensi')->where('tgl_presensi', $hariini)->where('nik', $nik);
+        $cek = $presensi->count();
+        $datapresensi = $presensi->first();
         $kode_cabang = Auth::guard('karyawan')->user()->kode_cabang;
         $lok_kantor = DB::table('cabang')->where('kode_cabang', $kode_cabang)->first();
-        $jamkerja = DB::table('konfigurasi_jamkerja')
-            ->join('jam_kerja', 'konfigurasi_jamkerja.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
-            ->where('nik', $nik)->where('hari', $namahari)->first();
 
-        if ($jamkerja == null) {
-            $jamkerja = DB::table('konfigurasi_jk_dept_detail')
-                ->join(
-                    'konfigurasi_jk_dept',
-                    'konfigurasi_jk_dept_detail.kode_jk_dept',
-                    '=',
-                    'konfigurasi_jk_dept.kode_jk_dept'
-                )
-                ->join('jam_kerja', 'konfigurasi_jk_dept_detail.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
-                ->where('kode_dept', $kode_dept)
-                ->where('kode_cabang', $kode_cabang)
-                ->where('hari', $namahari)->first();
+        if ($kode_jam_kerja == null) {
+            //cek jam kerja by date
+            $jamkerja = DB::table('konfigurasi_jamkerja_bydate')
+                ->join('jam_kerja', 'konfigurasi_jamkerja_bydate.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+                ->where('nik', $nik)
+                ->where('tanggal', $hariini)
+                ->first();
+
+            //jika tidak memiliki jam kerja by date
+            if ($jamkerja == null) {
+                //cek jam kerja harian/jam kerja khusus/jam kerja perorangan
+                $jamkerja = DB::table('konfigurasi_jamkerja')
+                    ->join('jam_kerja', 'konfigurasi_jamkerja.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+                    ->where('nik', $nik)->where('hari', $namahari)->first();
+
+                //Jika jam kerja harian kosong
+                if ($jamkerja == null) {
+                    $jamkerja = DB::table('konfigurasi_jk_dept_detail')
+                        ->join(
+                            'konfigurasi_jk_dept',
+                            'konfigurasi_jk_dept_detail.kode_jk_dept',
+                            '=',
+                            'konfigurasi_jk_dept.kode_jk_dept'
+                        )
+                        ->join('jam_kerja', 'konfigurasi_jk_dept_detail.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+                        ->where('kode_dept', $kode_dept)
+                        ->where('kode_cabang', $kode_cabang)
+                        ->where('hari', $namahari)
+                        ->first();
+                }
+            }
+        } else {
+            $jamkerja = DB::table('jam_kerja')->where('kode_jam_kerja', $kode_jam_kerja)->first();
         }
 
-        if ($jamkerja == null) {
+        if ($datapresensi != null && $datapresensi->status != "h") {
+            return view('presensi.notifizin');
+        } else if ($jamkerja == null) {
             return view('presensi.notifjadwal');
         } else {
-            return view('presensi.create', compact('cek', 'lok_kantor', 'jamkerja', 'hariini'));
+            return view('presensi.create', compact('cek', 'lok_kantor', 'jamkerja', 'hariini', 'kode_jam_kerja'));
         }
     }
     public function store(Request $request)
     {
+        $kode_jam_kerja = $request->kode_jam_kerja;
         $nik = Auth::guard('karyawan')->user()->nik;
+        $status_location = Auth::guard('karyawan')->user()->status_location;
         $hariini = date("Y-m-d");
         $jamsekarang = date("H:i");
         $tgl_sebelumnya = date("Y-m-d", strtotime("-1 days", strtotime($hariini)));
@@ -139,22 +165,40 @@ class PresensiController extends Controller
 
         //Cek jam kerja pegawai
         $namahari = $this->gethari(date('D', strtotime($tgl_presensi)));
-        $jamkerja = DB::table('konfigurasi_jamkerja')
-            ->join('jam_kerja', 'konfigurasi_jamkerja.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
-            ->where('nik', $nik)->where('hari', $namahari)->first();
 
-        if ($jamkerja == null) {
-            $jamkerja = DB::table('konfigurasi_jk_dept_detail')
-                ->join(
-                    'konfigurasi_jk_dept',
-                    'konfigurasi_jk_dept_detail.kode_jk_dept',
-                    '=',
-                    'konfigurasi_jk_dept.kode_jk_dept'
-                )
-                ->join('jam_kerja', 'konfigurasi_jk_dept_detail.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
-                ->where('kode_dept', $kode_dept)
-                ->where('kode_cabang', $kode_cabang)
-                ->where('hari', $namahari)->first();
+        if ($kode_jam_kerja == "null") {
+            //cek jam kerja by date
+            $jamkerja = DB::table('konfigurasi_jamkerja_bydate')
+                ->join('jam_kerja', 'konfigurasi_jamkerja_bydate.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+                ->where('nik', $nik)
+                ->where('tanggal', $hariini)
+                ->first();
+
+            //jika tidak memiliki jam kerja by date
+            if ($jamkerja == null) {
+                //cek jam kerja harian/jam kerja khusus/jam kerja perorangan
+                $jamkerja = DB::table('konfigurasi_jamkerja')
+                    ->join('jam_kerja', 'konfigurasi_jamkerja.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+                    ->where('nik', $nik)->where('hari', $namahari)->first();
+
+                //Jika jam kerja harian kosong
+                if ($jamkerja == null) {
+                    $jamkerja = DB::table('konfigurasi_jk_dept_detail')
+                        ->join(
+                            'konfigurasi_jk_dept',
+                            'konfigurasi_jk_dept_detail.kode_jk_dept',
+                            '=',
+                            'konfigurasi_jk_dept.kode_jk_dept'
+                        )
+                        ->join('jam_kerja', 'konfigurasi_jk_dept_detail.kode_jam_kerja', '=', 'jam_kerja.kode_jam_kerja')
+                        ->where('kode_dept', $kode_dept)
+                        ->where('kode_cabang', $kode_cabang)
+                        ->where('hari', $namahari)
+                        ->first();
+                }
+            }
+        } else {
+            $jamkerja = DB::table('jam_kerja')->where('kode_jam_kerja', $kode_jam_kerja)->first();
         }
 
         $presensi = DB::table('presensi')->where('tgl_presensi', $tgl_presensi)->where('nik', $nik);
@@ -181,7 +225,7 @@ class PresensiController extends Controller
         $jamkerja_pulang = $tgl_pulang . " " . $jamkerja->jam_pulang;
         $datakaryawan = DB::table('karyawan')->where('nik', $nik)->first();
         $no_hp = $datakaryawan->no_hp;
-        if ($radius > $lok_kantor->radius_cabang) {
+        if ($status_location == 1 && $radius > $lok_kantor->radius_cabang) {
             echo "error|Maaf Anda Berada Diluar Radius, Jarak Anda " . $radius . " meter dari Kantor|radius";
         } else {
             if ($cek > 0) {
@@ -461,7 +505,7 @@ class PresensiController extends Controller
         //        ->where('tgl_presensi', $tanggal)
         //        ->get();
         //}
-        return view('presensi.getpresensi', compact('presensi'));
+        return view('presensi.getpresensi', compact('presensi', 'tanggal'));
     }
     public function tampilkanpeta(Request $request)
     {
@@ -589,6 +633,9 @@ class PresensiController extends Controller
             "Desember"
         ];
 
+        $datalibur = getkaryawanlibur($dari, $sampai);
+        $harilibur = DB::table('harilibur')->whereBetween('tanggal_libur', [$dari, $sampai])->get();
+
         $select_date = "";
         $field_date = "";
         $i = 1;
@@ -651,13 +698,14 @@ class PresensiController extends Controller
         $query->orderBy('nama_lengkap');
         $rekap = $query->get();
 
+
         if (isset($_POST['exportexcel'])) {
             $time = date("d-M-Y H:i:s");
             header("Content-type: application/vnd-ms-excel");
             header("Content-Disposition: attachment; filename= Rekap Presensi Pegawai $time.xls");
         }
 
-        return view('presensi.cetakrekap', compact('bulan', 'tahun', 'namabulan', 'rekap', 'rangetanggal', 'jmlhari'));
+        return view('presensi.cetakrekap', compact('bulan', 'tahun', 'namabulan', 'rekap', 'rangetanggal', 'jmlhari', 'datalibur', 'harilibur'));
     }
     public function izinsakit(Request $request)
     {
@@ -677,6 +725,7 @@ class PresensiController extends Controller
             'keterangan',
             'karyawan.kode_cabang',
             'karyawan.kode_dept',
+            'doc_sid'
         );
         $query->join('karyawan', 'pengajuan_izin.nik', '=', 'karyawan.nik',);
         if (!empty($request->dari) && !empty($request->sampai)) {
@@ -807,5 +856,66 @@ class PresensiController extends Controller
             return redirect('/presensi/izin')->with(['warning' => 'Data gagal dihapus']);
             //throw $th;
         }
+    }
+
+    public function koreksipresensi(Request $request)
+    {
+        $nik = $request->nik;
+        $karyawan = DB::table('karyawan')->where('nik', $nik)->first();
+        $tanggal = $request->tanggal;
+        $presensi = DB::table('presensi')->where('nik', $nik)->where('tgl_presensi', $tanggal)->first();
+
+        $jamkerja = DB::table('jam_kerja')->orderBy('kode_jam_kerja')->get();
+        return view('presensi.koreksipresensi', compact('karyawan', 'tanggal', 'jamkerja', 'presensi'));
+    }
+    public function storekoreksipresensi(Request $request)
+    {
+        $status = $request->status;
+        $nik = $request->nik;
+        $tanggal = $request->tanggal;
+        $jam_in = $status == "a" ? null : $request->jam_in;
+        $jam_out = $status == "a" ? null : $request->jam_out;
+        $kode_jam_kerja = $status == "a" ? null : $request->kode_jam_kerja;
+
+
+        try {
+            $cekpresensi = DB::table('presensi')->where('nik', $nik)->where('tgl_presensi', $tanggal)->count();
+            if ($cekpresensi > 0) {
+                DB::table('presensi')
+                    ->where('nik', $nik)
+                    ->where('tgl_presensi', $tanggal)
+                    ->update([
+                        'jam_in' => $jam_in,
+                        'jam_out' => $jam_out,
+                        'kode_jam_kerja' => $kode_jam_kerja,
+                        'status' => $status
+                    ]);
+            } else {
+                DB::table('presensi')->insert([
+                    'nik' => $nik,
+                    'tgl_presensi' => $tanggal,
+                    'jam_in' => $jam_in,
+                    'jam_out' => $jam_out,
+                    'kode_jam_kerja' => $kode_jam_kerja,
+                    'status' => $status
+                ]);
+            }
+            return Redirect::back()->with(['success' => 'Data berhasil disimpan']);
+        } catch (\Exception $e) {
+            dd($e);
+            return Redirect::back()->with(['warning' => 'Data gagal disimpan']);
+        }
+    }
+    public function pilihjamkerja()
+    {
+        $nik = Auth::guard('karyawan')->user()->nik;
+        $hariini = date('Y-m-d');
+        $cekpresensi = DB::table('presensi')->where('nik', $nik)->where('tgl_presensi', $hariini)->first();
+        if (!empty($cekpresensi)) {
+            $kode_jam_kerja = Crypt::encrypt($cekpresensi->kode_jam_kerja);
+            return redirect('/presensi/' . $kode_jam_kerja . '/create');
+        }
+        $jamkerja = DB::table('jam_kerja')->get();
+        return view('presensi.pilihjamkerja', compact('jamkerja'));
     }
 }

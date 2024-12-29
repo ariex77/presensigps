@@ -91,7 +91,6 @@ class IzinabsenController extends Controller
         $keterangan = $request->keterangan;
 
         try {
-            //code...
             $data = [
                 'tgl_izin_dari' => $tgl_izin_dari,
                 'tgl_izin_sampai' => $tgl_izin_sampai,

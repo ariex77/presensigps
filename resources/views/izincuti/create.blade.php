@@ -43,8 +43,9 @@
                         placeholder="Sampai">
                     </div>
                     <div class="form-group">
-                        <input type="text" id="jml_hari" name="jml_hari" class="form-control" autocomplete="off" 
+                        <input type="hidden" id="jml_hari" name="jml_hari" class="form-control" autocomplete="off" 
                         placeholder="Jumlah Hari" readonly>
+                        <p id="info_jml_hari"></p>
                     </div>
                     <div class="form-group">
                         <select name="kode_cuti" id="kode_cuti" class="form-control selectmaterialize">
@@ -55,9 +56,14 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <input type="text" id="keterangan" name="keterangan" class="form-control" autocomplete="off"
-                        placeholder="Keterangan">
+                        <input type="hidden" id="max_cuti" name="max_cuti" class="form-control" autocomplete="off"
+                        placeholder="Maksimal Cuti" readonly>
+                        <p id="info_max_cuti"></p>
                     </div>
+                </div>
+            <div class="form-group">
+                <input type="text" id="keterangan" name="keterangan" class="form-control" autocomplete="off"
+                        placeholder="Keterangan">
             </div>
             <div class="form-group">
                 <button class="btn btn-primary w-100">Kirim</button>
@@ -93,7 +99,8 @@
             }
             
             //to display the final no.of days (result)
-	        $("#jml_hari").val(jmlhari + " Hari");
+	        $("#jml_hari").val(jmlhari);
+            $("#info_jml_hari").html("<b>Jumlah cuti yg dapat diambil adalah: "+jmlhari+ " hari</b>");
         }
 
         $("#tgl_izin_dari,#tgl_izin_sampai").change(function(e){
@@ -129,6 +136,8 @@
          $("#frmizin").submit(function(){
             var tgl_izin_dari = $("#tgl_izin_dari").val();
             var tgl_izin_sampai = $("#tgl_izin_sampai").val();
+            var jml_hari = $("#jml_hari").val();
+            var max_cuti = $("#max_cuti").val();
             var keterangan = $("#keterangan").val();
             var kode_cuti = $("#kode_cuti").val();
             if(tgl_izin_dari=="" ||tgl_izin_sampai==""){
@@ -152,6 +161,41 @@
                         icon: 'warning'
                     });
                 return false;
+            }else if(parseInt(jml_hari)>parseInt(max_cuti)){
+                Swal.fire({
+                        title: 'Oops!',
+                        text: 'Jumlah cuti tidak boleh melebihi '+max_cuti+" hari",
+                        icon: 'warning'
+                    });
+                return false;
+            }
+         });
+
+         $("#kode_cuti").change(function(e){
+            var kode_cuti = $(this).val();
+            var tgl_izin_dari = $("tgl_izin_dari").val();
+            if(tgl_izin_dari==""){
+                Swal.fire({
+                        title: 'Oops!',
+                        text: 'Tanggal cuti harus diisi',
+                        icon: 'warning'
+                    });
+                    $("#kode_cuti").val("");
+            }else{
+                $.ajax({
+                url:'/izincuti/getmaxcuti',
+                type:'POST',
+                data:{
+                    _token:"{{ csrf_token() }}",
+                    kode_cuti:kode_cuti,
+                    tgl_izin_dari:tgl_izin_dari
+                },
+                cache:false,
+                success:function(respond){
+                    $("#max_cuti").val(respond);
+                    $("#info_max_cuti").html("<b>Maksimal cuti yg dapat diambil adalah: "+respond+ " hari</b>");
+                }
+            });
             }
          });
     }); 

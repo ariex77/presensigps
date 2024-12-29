@@ -63,6 +63,10 @@
     width: 40px;
     height: 30px;
   }
+  body.A4.landscape .sheet{
+    width: 297mm !important;
+    height: auto !important;
+  }
   </style>
 </head>
 
@@ -102,6 +106,7 @@
                 <th>{{ date("d", strtotime($d)) }}</th>
             @endif
             @endforeach
+            
         </tr>
             @foreach ($rekap as $r)
             <tr>
@@ -117,6 +122,14 @@
                     
                     for($i=1; $i<=$jmlhari; $i++){
                       $tgl = "tgl_".$i;
+                      $tgl_presensi = $rangetanggal[$i-1];
+                      //cari karyawan libur
+                      $search_items = [
+                        'nik'=>$r->nik,
+                        'tanggal_libur'=>$tgl_presensi
+                      ];
+                      $ceklibur = cekkaryawanlibur($datalibur,$search_items);
+
                       $datapresensi = explode("|", $r->$tgl);
                       if($r->$tgl != NULL){
                         $status = $datapresensi[2];
@@ -143,9 +156,17 @@
                         $jml_alpa += 1;
                         $color = "red";
                       }
+
+                      if(!empty($ceklibur)){
+                        $color = "green";
+                      }
+                      
                   ?> 
                 <td style="background-color: {{ $color }}">
                       {{ $status }}
+                      {{--@if (!empty($ceklibur))
+                          {{ $ceklibur[0]['keterangan'] }}
+                      @endif--}}
                 </td>
                   <?php 
                     }
@@ -158,6 +179,12 @@
             </tr>
             @endforeach
     </table>
+    <h4>Keterangan libur:</h4>
+    <ol>
+      @foreach ($harilibur as $d)
+          <li>{{ date('d-m-Y',strtotime($d->tanggal_libur)) }} - {{ $d->keterangan }}</li>
+      @endforeach
+    </ol>
     <table width="100%" style="margin-top: 10px">
       <tr>
         <td style="text-align: center">Mengetahui,</td>
@@ -174,6 +201,7 @@
           </td>
         </tr>
     </table>
+    
   </section>
 </body>
 </html>

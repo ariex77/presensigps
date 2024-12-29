@@ -94,18 +94,22 @@
                         <div class="card-body">
                             <div class="presencecontent">
                                 <div class="iconpresence">
-                                    @if ($presensihariini != null )
-                                    @php 
-                                    $path = Storage::url('uploads/absensi/'.$presensihariini->foto_in); 
-                                    @endphp
-                                    <img src="{{ url($path) }}" alt="" class="imaged w48">
+                                    @if ($presensihariini != null && $presensihariini->jam_in != null)
+                                        @if ($presensihariini->foto_in != null)
+                                            @php 
+                                                $path = Storage::url('uploads/absensi/'.$presensihariini->foto_in); 
+                                            @endphp
+                                            <img src="{{ url($path) }}" alt="" class="imaged w48"> 
+                                        @else
+                                            <ion-icon name="camera"></ion-icon>
+                                        @endif
                                     @else
                                         <ion-icon name="camera"></ion-icon>
                                     @endif
                                 </div>
                                 <div class="presencedetail">
                                     <h4 class="presencetitle">Masuk</h4>
-                                    <span>{{ $presensihariini != null ? $presensihariini->jam_in : 'Belum Absen'}}</span>
+                                    <span>{{ $presensihariini != null && $presensihariini->jam_in !=null ? $presensihariini->jam_in : 'Belum Absen'}}</span>
                                 </div>
                             </div>
                         </div>
@@ -117,10 +121,14 @@
                             <div class="presencecontent">
                                 <div class="iconpresence">
                                     @if ($presensihariini != null && $presensihariini->jam_out != null)
-                                    @php 
-                                    $path = Storage::url('uploads/absensi/'.$presensihariini->foto_out); 
-                                    @endphp
-                                    <img src="{{ url($path) }}" alt="" class="imaged w48">
+                                        @if ($presensihariini->foto_out != null)
+                                            @php 
+                                                $path = Storage::url('uploads/absensi/'.$presensihariini->foto_out); 
+                                            @endphp
+                                                <img src="{{ url($path) }}" alt="" class="imaged w48"> 
+                                        @else
+                                            <ion-icon name="camera"></ion-icon>
+                                        @endif
                                     @else
                                         <ion-icon name="camera"></ion-icon>
                                     @endif

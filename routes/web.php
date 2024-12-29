@@ -10,6 +10,7 @@ use App\Http\Controllers\CabangController;
 use App\Http\Controllers\IzinabsenController;
 use App\Http\Controllers\IzincutiController;
 use App\Http\Controllers\CutiController;
+use App\Http\Controllers\HariliburController;
 use App\Http\Controllers\IzinsakitController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -39,7 +40,8 @@ Route::middleware(['auth:karyawan'])->group(function () {
     Route::get('/proseslogout', [AuthController::class, "proseslogout"]);
 
     //Presensi
-    Route::get('/presensi/create', [PresensiController::class, 'create']);
+    Route::get('/presensi/{kode_jam_kerja}/create', [PresensiController::class, 'create']);
+    Route::get('/presensi/pilihjamkerja', [PresensiController::class, 'pilihjamkerja']);
     Route::post('/presensi/store', [PresensiController::class, 'store']);
 
     //edit profile
@@ -73,6 +75,7 @@ Route::middleware(['auth:karyawan'])->group(function () {
     Route::post('/izincuti/store', [IzincutiController::class, 'store']);
     Route::get('/izincuti/{kode_izin}/edit', [IzincutiController::class, 'edit']);
     Route::post('/izincuti/{kode_izin}/update', [IzincutiController::class, 'update']);
+    Route::post('/izincuti/getmaxcuti', [IzincutiController::class, 'getmaxcuti']);
 
     Route::get('/izin/{kode_izin}/showact', [PresensiController::class, 'showact']);
     Route::get('/izin/{kode_izin}/delete', [PresensiController::class, 'deleteizin']);
@@ -92,7 +95,7 @@ Route::group(['middleware' => ['role:administrator|admin bidang,user']], functio
     Route::post('/konfigurasi/storesetjamkerja', [KonfigurasiController::class, 'storesetjamkerja']);
     Route::post('/konfigurasi/updatesetjamkerja', [KonfigurasiController::class, 'updatesetjamkerja']);
     Route::post('/konfigurasi/storesetjamkerjabydate', [KonfigurasiController::class, 'storesetjamkerjabydate']);
-    Route::get('/konfigurasi/{nik}/getjamkerjabydate', [KonfigurasiController::class, 'getjamkerjabydate']);
+    Route::get('/konfigurasi/{nik}/{bulan}/{tahun}/getjamkerjabydate', [KonfigurasiController::class, 'getjamkerjabydate']);
     Route::get('/konfigurasi/deletejamkerjabydate', [KonfigurasiController::class, 'deletejamkerjabydate']);
 
     //Presensi Monitoring
@@ -104,6 +107,9 @@ Route::group(['middleware' => ['role:administrator|admin bidang,user']], functio
     Route::get('/presensi/rekap', [PresensiController::class, 'rekap']);
     Route::post('/presensi/cetakrekap', [PresensiController::class, 'cetakrekap']);
     Route::get('/presensi/izinsakit', [PresensiController::class, 'izinsakit']);
+
+    Route::post('/koreksipresensi', [PresensiController::class, 'koreksipresensi']);
+    Route::post('/storekoreksipresensi', [PresensiController::class, 'storekoreksipresensi']);
 });
 
 //Route yg hanya bisa diakses administrator
@@ -115,7 +121,8 @@ Route::group(['middleware' => ['role:administrator,user']], function () {
     Route::post('/karyawan/edit', [KaryawanController::class, 'edit']);
     Route::post('/karyawan/{nik}/update', [KaryawanController::class, 'update']);
     Route::post('/karyawan/{nik}/delete', [KaryawanController::class, 'delete']);
-
+    Route::get('/karyawan/{nik}/lockandunlocklocation', [KaryawanController::class, 'lockandunlocklocation']);
+    Route::get('/karyawan/{nik}/lockandunlockjamkerja', [KaryawanController::class, 'lockandunlockjamkerja']);
 
     //Departemen
     Route::get('/departemen', [DepartemenController::class, 'index'])->middleware('permission:view-departemen,user');;
@@ -124,7 +131,7 @@ Route::group(['middleware' => ['role:administrator,user']], function () {
     Route::post('/departemen/{kode_dept}/update', [DepartemenController::class, 'update']);
     Route::post('/departemen/{kode_dept}/delete', [DepartemenController::class, 'delete']);
 
-    //Presensi Monitoring
+    //Presensi
     Route::post('/presensi/approveizinsakit', [PresensiController::class, 'approveizinsakit']);
     Route::get('/presensi/{kode_izin}/batalkanizinsakit', [PresensiController::class, 'batalkanizinsakit']);
 
@@ -160,6 +167,20 @@ Route::group(['middleware' => ['role:administrator,user']], function () {
     Route::post('/konfigurasi/users/edit', [UserController::class, 'edit']);
     Route::post('/konfigurasi/users/{id_user}/update', [UserController::class, 'update']);
     Route::post('/konfigurasi/users/{id_user}/delete', [UserController::class, 'delete']);
+
+    //harilibur
+    Route::get('/konfigurasi/harilibur', [HariliburController::class, 'index']);
+    Route::get('/konfigurasi/harilibur/create', [HariliburController::class, 'create']);
+    Route::post('/konfigurasi/harilibur/store', [HariliburController::class, 'store']);
+    Route::post('/konfigurasi/harilibur/edit', [HariliburController::class, 'edit']);
+    Route::post('/konfigurasi/harilibur/{kode_libur}/update', [HariliburController::class, 'update']);
+    Route::post('/konfigurasi/harilibur/{kode_libur}/delete', [HariliburController::class, 'delete']);
+    Route::get('/konfigurasi/harilibur/{kode_libur}/setkaryawanlibur', [HariliburController::class, 'setkaryawanlibur']);
+    Route::get('/konfigurasi/harilibur/{kode_libur}/setlistkaryawanlibur', [HariliburController::class, 'setlistkaryawanlibur']);
+    Route::get('/konfigurasi/harilibur/{kode_libur}/getsetlistkaryawanlibur', [HariliburController::class, 'getsetlistkaryawanlibur']);
+    Route::post('/konfigurasi/harilibur/storekaryawanlibur', [HariliburController::class, 'storekaryawanlibur']);
+    Route::post('/konfigurasi/harilibur/removekaryawanlibur', [HariliburController::class, 'removekaryawanlibur']);
+    Route::get('/konfigurasi/harilibur/{kode_libur}/getkaryawanlibur', [HariliburController::class, 'getkaryawanlibur']);
 
     //cuti
     Route::get('/cuti', [CutiController::class, 'index']);
