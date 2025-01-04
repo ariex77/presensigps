@@ -32,7 +32,7 @@ function hitungjamterlambatdesimal($jadwal_jam_masuk, $jam_presensi)
     $jterlambat = $jamterlambat <= 9 ? "0" . $jamterlambat : $jamterlambat;
     $mterlambat = $menitterlambat <= 9 ? "0" . $menitterlambat : $menitterlambat;
 
-    $desimalterlambat = ROUND(($menitterlambat / 60), 2);
+    $desimalterlambat = $jamterlambat + ROUND(($menitterlambat / 60), 2);
 
     return $desimalterlambat;
 }
@@ -44,9 +44,32 @@ function hitunghari($tanggal_mulai, $tanggal_akhir)
     $tanggal_1 = date_create($tanggal_mulai);
     $tanggal_2 = date_create($tanggal_akhir); // waktu sekarang
     $diff = date_diff($tanggal_1, $tanggal_2);
-
     return $diff->days + 1;
 }
+
+function hitungdenda($jam_terlambat)
+{
+    $j_terlambat = explode(":", $jam_terlambat);
+    $jam = $j_terlambat[0];
+    $menit = $j_terlambat[1];
+    if ($jam > 7) {
+        if ($jam >= 7) {
+            $denda = 0.009;
+        } elseif ($jam >= 14) {
+            $denda = 0.018;
+        } elseif ($jam >= 21) {
+            $denda = 0.027;
+        } elseif ($jam >= 28) {
+            $denda = 0.036;
+        } elseif ($jam >= 35) {
+            $denda = 0.3;
+        } else {
+            $denda = 0;
+        }
+        return $denda;
+    }
+}
+
 
 function buatkode($nomor_terakhir, $kunci, $jumlah_karakter = 0)
 {
@@ -61,11 +84,27 @@ function buatkode($nomor_terakhir, $kunci, $jumlah_karakter = 0)
     return $kode;
 }
 
-function hitungjamkerja($jam_masuk, $jam_pulang)
+function hitungjamkerja($tgl_presensi, $jam_mulai, $jam_pulang, $max_total_jam, $lintashari, $awal_jam_istirahat, $akhir_jam_istirahat)
 {
-    $j_masuk = strtotime($jam_masuk);
+    if ($lintashari == '1') {
+        $tgl_pulang = date("Y-m-d", strtotime("+1 days", strtotime($tgl_presensi)));
+    } else {
+        $tgl_pulang = $tgl_presensi;
+    }
+    $jam_mulai = $tgl_presensi . " " . $jam_mulai;
+    $jam_pulang = $tgl_pulang . " " . $jam_pulang;
+
+    if ($awal_jam_istirahat != "NA") {
+        $awal_jam_istirahat = $tgl_pulang . " " . $awal_jam_istirahat;
+        $akhir_jam_istirahat = $tgl_pulang . " " . $akhir_jam_istirahat;
+        if ($jam_pulang > $awal_jam_istirahat && $jam_pulang <= $akhir_jam_istirahat) {
+            $jam_pulang = $awal_jam_istirahat;
+        }
+    }
+
+    $j_mulai = strtotime($jam_mulai);
     $j_pulang = strtotime($jam_pulang);
-    $diff = $j_pulang - $j_masuk;
+    $diff = $j_pulang - $j_mulai;
     if (empty($j_pulang)) {
         $jam = 0;
         $menit = 0;
@@ -75,7 +114,23 @@ function hitungjamkerja($jam_masuk, $jam_pulang)
         $menit = floor($m / 60);
     }
 
-    return $jam . ":" . $menit;
+    $menitdesimal = ROUND($menit / 60, 2);
+    /*jika pegawai pulang setelah jam istirahat, maka total jam kerja dikurangi 1 jam, 
+    jika kurang dari jam istirahat tidak dikurangi 1 jam*/
+
+    if ($awal_jam_istirahat != "NA") {
+        if ($jam_pulang > $akhir_jam_istirahat) {
+            $jam_istirahat = 1;
+        } else {
+            $jam_istirahat = 0;
+        }
+    } else {
+        $jam_istirahat = 0;
+    }
+
+    $jamdesimal = $jam - $jam_istirahat + $menitdesimal;
+    $totaljam = $jamdesimal > $max_total_jam ? $max_total_jam : $jamdesimal;
+    return $totaljam;
 }
 
 function getkaryawanlibur($dari, $sampai)
@@ -122,4 +177,42 @@ function cekkaryawanlibur($array, $search_list)
     }
     //return result
     return $result;
+}
+function gethari($hari)
+{
+    //$hari = date("D");
+    switch ($hari) {
+        case 'Sun':
+            $hari_ini = "Minggu";
+            break;
+
+        case 'Mon':
+            $hari_ini = "Senin";
+            break;
+
+        case 'Tue':
+            $hari_ini = "Selasa";
+            break;
+
+        case 'Wed':
+            $hari_ini = "Rabu";
+            break;
+
+        case 'Thu':
+            $hari_ini = "Kamis";
+            break;
+
+        case 'Fri':
+            $hari_ini = "Jum'at";
+            break;
+
+        case 'Sat':
+            $hari_ini = "Sabtu";
+            break;
+
+        default:
+            $hari_ini = "Tidak diketahui";
+            break;
+    }
+    return $hari_ini;
 }

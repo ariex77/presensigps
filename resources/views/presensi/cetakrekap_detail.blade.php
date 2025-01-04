@@ -1,18 +1,33 @@
 @php
-    function selisih($jam_masuk, $jam_keluar)
-        {
-            list($h, $m, $s) = explode(":", $jam_masuk);
-            $dtAwal = mktime($h, $m, $s, "1", "1", "1");
-            list($h, $m, $s) = explode(":", $jam_keluar);
-            $dtAkhir = mktime($h, $m, $s, "1", "1", "1");
-            $dtSelisih = $dtAkhir - $dtAwal;
-            $totalmenit = $dtSelisih / 60;
-            $jam = explode(".", $totalmenit / 60);
-            $sisamenit = ($totalmenit / 60) - $jam[0];
-            $sisamenit2 = $sisamenit * 60;
-            $jml_jam = $jam[0];
-            return $jml_jam . ":" . round($sisamenit2);
-        }
+    //function selisih($jam_masuk, $jam_keluar)
+    //    {
+    //        list($h, $m, $s) = explode(":", $jam_masuk);
+    //        $dtAwal = mktime($h, $m, $s, "1", "1", "1");
+    //        list($h, $m, $s) = explode(":", $jam_keluar);
+    //        $dtAkhir = mktime($h, $m, $s, "1", "1", "1");
+    //        $dtSelisih = $dtAkhir - $dtAwal;
+    //        $totalmenit = $dtSelisih / 60;
+    //        $jam = explode(".", $totalmenit / 60);
+    //        $sisamenit = ($totalmenit / 60) - $jam[0];
+    //        $sisamenit2 = $sisamenit * 60;
+    //        $jml_jam = $jam[0];
+    //        return $jml_jam . ":" . round($sisamenit2);
+    //    }
+
+    //function hitungjamkerja($jam_masuk,$jam_pulang)
+    //{
+    //    $awal = strtotime($jam_masuk_tanggal);
+    //    $akhir = strtotime($jout);
+    //    $diff = $akhir-$awal;
+    //    if(empty(jout)){
+    //        $jam = 0;
+    //        $menit = 0;
+    //    }else{
+    //        $jam = floor($diff/(60*60));
+    //        $m = $diff-$jam*(60*60);
+    //        $menit = floor($m/60);
+    //    }
+    //}
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -20,18 +35,7 @@
 <head>
   <meta charset="utf-8">
   <title>A4</title>
-
-  <!-- Normalize or reset CSS with your favorite library -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css">
-
-  <!-- Load paper.css for happy printing -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paper-css/0.4.1/paper.css">
-
-  <!-- Set page size here: A5, A4 or A3 -->
-  <!-- Set also "landscape" if you need -->
   <style>
-  @page { size: A4
-  } 
   #title{
     font-family:Arial, Helvetica, sans-serif;
     font-size:14px;
@@ -63,10 +67,7 @@
     width: 40px;
     height: 30px;
   }
-  body.A4.landscape .sheet{
-    width: 297mm !important;
-    height: auto !important;
-  }
+  
   </style>
 </head>
 
@@ -120,7 +121,6 @@
                     $jml_cuti = 0;
                     $jml_alpa = 0;
                     $color = "";
-                    
                     for($i=1; $i<=$jmlhari; $i++){
                       $tgl = "tgl_".$i;
                       $tgl_presensi = $rangetanggal[$i-1];
@@ -133,10 +133,45 @@
                       $datapresensi = explode("|", $r->$tgl);
                       if($r->$tgl != NULL){
                         $status = $datapresensi[2];
+                        $jam_in = $datapresensi[0] !="NA" ? date("H:i", strtotime($datapresensi[0]))  : 'Belum absen';
+                        $jam_out = $datapresensi[1] !="NA" ? date("H:i", strtotime($datapresensi[1]))  : 'Belum absen';
+                        $jam_masuk = $datapresensi[4] !="NA" ? date("H:i", strtotime($datapresensi[4]))  : '';
+                        $jam_pulang = $datapresensi[5] !="NA" ? date("H:i", strtotime($datapresensi[5]))  : '';
+                        $nama_jam_kerja = $datapresensi[3] !="NA" ? $datapresensi[3]  : '';
+                        $total_jam = $datapresensi[8] !="NA" ? $datapresensi[8]  : 0;
+                        $lintashari = $datapresensi[9];
+                        $awal_jam_istirahat = $datapresensi[10];
+                        $akhir_jam_istirahat = $datapresensi[11];
+                        
+                        $jam_berakhir = $jam_out > $jam_pulang ? $jam_pulang : $jam_out;
+                        
+                        $terlambat = hitungjamterlambat($jam_masuk,$jam_in);
+                        $terlambat_desimal = hitungjamterlambatdesimal($jam_masuk,$jam_in);
+                        $j_terlambat = explode(":",$terlambat);
+                        $jam_terlambat = $j_terlambat[0];
+
+                        if($jam_terlambat <1){
+                          $jam_mulai = $jam_masuk;
+                        }else{
+                          $jam_mulai = $jam_in > $jam_masuk ? $jam_in : $jam_masuk;
+                        }
+                        if($jam_in!="NA" && $jam_out!="NA"){
+                            $total_jam_kerja = hitungjamkerja($tgl_presensi,$jam_mulai,$jam_berakhir, $total_jam,$lintashari,$awal_jam_istirahat,$akhir_jam_istirahat,$terlambat);
+                        }else{
+                            $total_jam_kerja = 0;
+                        }
+                        $denda = hitungdenda($terlambat);
                       }else{
                         $status = "";
+                        $jam_in = "";
+                        $jam_out = "";
+                        $jam_masuk = "";
+                        $jam_pulang = "";
+                        $nama_jam_kerja = "";
+                        $total_jam_kerja = 0;
+                        $terlambat = 0;
                       }
-                      $cekhari=gethari(date('D', strtotime($tgl_presensi)));
+                      $cekhari = gethari(date('D', strtotime($tgl_presensi)));
                       if($status == "h"){
                         $jml_hadir += 1;
                         $color = "white";
@@ -169,10 +204,31 @@
                       }
                   ?> 
                 <td style="background-color: {{ $color }}">
-                      {{ $status }}
-                      {{--@if (!empty($ceklibur))
-                          {{ $ceklibur[0]['keterangan'] }}
-                      @endif--}}
+                    @if ($status=='h')
+                    <span style="color: bold">
+                        {{ $nama_jam_kerja }}
+                    </span>
+                    <br>
+                    <span style="color: green">
+                        {{ $jam_masuk }} - {{ $jam_pulang }}
+                    </span>
+                    <br>
+                    <span style="color: orange">
+                        {{ $jam_in }} - {{ $jam_out }}
+                    </span>
+                    <br>  
+                    <span style="color: blue">
+                        Total jam:{{ $total_jam_kerja }} 
+                    </span>
+                    <br>
+                      @if ($terlambat_desimal > 0)
+                        <span style="color: red">
+                            Terlambat:{{ $terlambat }} ({{ $terlambat_desimal }})
+                            <br>
+                            Denda : {{ $denda }}
+                        </span> 
+                      @endif
+                    @endif
                 </td>
                   <?php 
                     }

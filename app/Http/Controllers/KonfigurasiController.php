@@ -42,7 +42,11 @@ class KonfigurasiController extends Controller
         $awal_jam_masuk = $request->awal_jam_masuk;
         $jam_masuk = $request->jam_masuk;
         $akhir_jam_masuk = $request->akhir_jam_masuk;
+        $status_istirahat = $request->status_istirahat;
+        $awal_jam_istirahat = $request->awal_jam_istirahat;
+        $akhir_jam_istirahat = $request->akhir_jam_istirahat;
         $jam_pulang = $request->jam_pulang;
+        $total_jam = $request->total_jam;
         $lintashari = $request->lintashari;
 
         $data = [
@@ -51,7 +55,11 @@ class KonfigurasiController extends Controller
             'awal_jam_masuk' => $awal_jam_masuk,
             'jam_masuk' => $jam_masuk,
             'akhir_jam_masuk' => $akhir_jam_masuk,
+            'status_istirahat' => $status_istirahat,
+            'awal_jam_istirahat' => $awal_jam_istirahat,
+            'akhir_jam_istirahat' => $akhir_jam_istirahat,
             'jam_pulang' => $jam_pulang,
+            'total_jam' => $total_jam,
             'lintashari' => $lintashari
         ];
         try {
@@ -75,16 +83,23 @@ class KonfigurasiController extends Controller
         $jam_masuk = $request->jam_masuk;
         $akhir_jam_masuk = $request->akhir_jam_masuk;
         $jam_pulang = $request->jam_pulang;
+        $total_jam = $request->total_jam;
         $lintashari = $request->lintashari;
+        $status_istirahat = $request->status_istirahat;
+        $awal_jam_istirahat = $request->awal_jam_istirahat;
+        $akhir_jam_istirahat = $request->akhir_jam_istirahat;
 
         $data = [
             'nama_jam_kerja' => $nama_jam_kerja,
             'awal_jam_masuk' => $awal_jam_masuk,
             'jam_masuk' => $jam_masuk,
             'akhir_jam_masuk' => $akhir_jam_masuk,
+            'status_istirahat' => $status_istirahat,
+            'awal_jam_istirahat' => $awal_jam_istirahat,
+            'akhir_jam_istirahat' => $akhir_jam_istirahat,
             'jam_pulang' => $jam_pulang,
+            'total_jam' => $total_jam,
             'lintashari' => $lintashari
-
         ];
         try {
             DB::table('jam_kerja')->where('kode_jam_kerja', $kode_jam_kerja)->update($data);

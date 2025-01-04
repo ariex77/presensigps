@@ -261,6 +261,8 @@
                                     <h3 style="line-height: 2px">{{ $d->nama_jam_kerja }}</h3>
                                     <h4 style="margin: 0px !important">{{ date("d-m-Y", 
                                     strtotime($d->tgl_presensi)) }}</h4>
+                                    <span style="color: green">{{ date('H:i', strtotime($d->jam_masuk)) }} - {{ date('H:i', strtotime($d->jam_pulang)) }}</span>
+                                    <br>
                                     <span>
                                         {!! $d->jam_in !== null ? date("H:i", strtotime($d->jam_in)) :
                                         '<span class="text-danger">Belum scan</span>' !!}
@@ -283,9 +285,11 @@
                                    @if ($jam_in > $jam_masuk)
                                    @php
                                    $jmlterlambat = hitungjamterlambat($jadwal_jam_masuk,$jam_presensi);
-                                   
+                                   $jmlterlambatdesimal = hitungjamterlambatdesimal($jadwal_jam_masuk,$jam_presensi);
                                    @endphp
-                                   <span class="danger">Terlambat {{ $jmlterlambat }}</span>
+                                   <span class="danger">
+                                    Terlambat {{ $jmlterlambat }} - ({{ $jmlterlambatdesimal }} Jam)
+                                   </span>
                                    @else
                                    <span style="color: green">Tepat Waktu</span>
                                    @endif
