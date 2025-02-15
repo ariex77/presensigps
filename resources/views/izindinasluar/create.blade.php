@@ -22,7 +22,7 @@
                 <ion-icon name="chevron-back-outline"></ion-icon>
             </a>
         </div>
-        <div class="pagetitle">Form Izin Cuti</div>
+        <div class="pagetitle">Form Dinas Luar</div>
         <div class="right"></div>
     </div>
     <!-- * App Header -->
@@ -32,7 +32,7 @@
 @section('content')
     <div class="row" style="margin-top: 70px">
         <div class ="col">
-            <form method="POST" action="/izincuti/store" id="frmizin">
+            <form method="POST" action="/izindinasluar/store" id="frmizin">
                 @csrf
                     <div class="form-group">
                         <input type="text" id="tgl_izin_dari" autocomplete="off" name="tgl_izin_dari" class="form-control datepicker"  
@@ -43,22 +43,22 @@
                         placeholder="Sampai">
                     </div>
                     <div class="form-group">
-                        <input type="hidden" id="jml_hari" name="jml_hari" class="form-control" autocomplete="off" 
-                        placeholder="Jumlah Hari" readonly>
-                        <p id="info_jml_hari"></p>
+                        <input type="hidden" id="jml_dinasluar" name="jml_dinasluar" class="form-control" autocomplete="off" 
+                        placeholder="Jumlah Dinas Luar" readonly>
+                        <p id="info_jml_dinasluar"></p>
                     </div>
                     <div class="form-group">
-                        <select name="kode_cuti" id="kode_cuti" class="form-control selectmaterialize">
-                            <option value="">Pilih kategori cuti</option>
-                            @foreach ($mastercuti as $c)
-                                <option value="{{ $c->kode_cuti }}">{{ $c->nama_cuti }}</option>
+                        <select name="kode_dinasluar" id="kode_dinasluar" class="form-control selectmaterialize">
+                            <option value="">Pilih kategori dinas luar</option>
+                            @foreach ($masterdinasluar as $c)
+                                <option value="{{ $c->kode_dinasluar }}">{{ $c->nama_dinasluar }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="form-group">
-                        <input type="hidden" id="max_cuti" name="max_cuti" class="form-control" autocomplete="off"
-                        placeholder="Maksimal Cuti" readonly>
-                        <p id="info_max_cuti"></p>
+                        <input type="hidden" id="max_dinasluar" name="max_dinasluar" class="form-control" autocomplete="off"
+                        placeholder="Maksimal Dinas Luar" readonly>
+                        <p id="info_max_dinasluar"></p>
                     </div>
                 </div>
             <div class="form-group">
@@ -80,7 +80,7 @@
         format: "yyyy-mm-dd"    
          });
 
-         function loadjumlahhari(){
+         function loadjumlahdinasluar(){
 	        var dari = $("#tgl_izin_dari").val();
 	        var sampai = $("#tgl_izin_sampai").val();
 	        var date1 = new Date(dari);
@@ -93,18 +93,18 @@
 	        var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
 
             if(dari =="" || sampai ==""){
-                var jmlhari = 0;
+                var jmldinasluar = 0;
             }else{
-                var jmlhari =Difference_In_Days + 1;
+                var jmldinasluar =Difference_In_Days + 1;
             }
             
             //to display the final no.of days (result)
-	        $("#jml_hari").val(jmlhari);
-            $("#info_jml_hari").html("<b>Jumlah cuti yg akan diambil adalah: "+jmlhari+ " hari</b>");
+	        $("#jml_dinasluar").val(jmldinasluar);
+            $("#info_jml_dinasluar").html("<b>Jumlah dinas luar yg akan diambil adalah: "+jmldinasluar+ " hari</b>");
         }
 
         $("#tgl_izin_dari,#tgl_izin_sampai").change(function(e){
-            loadjumlahhari();
+            loadjumlahdinasluar();
         });
 
 
@@ -136,10 +136,10 @@
          $("#frmizin").submit(function(){
             var tgl_izin_dari = $("#tgl_izin_dari").val();
             var tgl_izin_sampai = $("#tgl_izin_sampai").val();
-            var jml_hari = $("#jml_hari").val();
-            var max_cuti = $("#max_cuti").val();
+            var jml_dinasluar = $("#jml_dinasluar").val();
+            var max_dinasluar = $("#max_dinasluar").val();
             var keterangan = $("#keterangan").val();
-            var kode_cuti = $("#kode_cuti").val();
+            var kode_dinasluar = $("#kode_dinasluar").val();
             if(tgl_izin_dari=="" ||tgl_izin_sampai==""){
                 Swal.fire({
                         title: 'Oops!',
@@ -147,10 +147,10 @@
                         icon: 'warning'
                     });
                 return false;
-            }else if(kode_cuti==""){
+            }else if(kode_dinasluar==""){
                 Swal.fire({
                         title: 'Oops!',
-                        text: 'Kategori cuti harus diisi',
+                        text: 'Kategori dinas luar harus diisi',
                         icon: 'warning'
                     });
                 return false;
@@ -161,39 +161,39 @@
                         icon: 'warning'
                     });
                 return false;
-            }else if(parseInt(jml_hari)>parseInt(max_cuti)){
+            }else if(parseInt(jml_dinasluar)>parseInt(max_dinasluar)){
                 Swal.fire({
                         title: 'Oops!',
-                        text: 'Jumlah cuti tidak boleh melebihi '+max_cuti+" hari",
+                        text: 'Jumlah dinas luar tidak boleh melebihi '+max_dinasluar+" hari",
                         icon: 'warning'
                     });
                 return false;
             }
          });
 
-         $("#kode_cuti").change(function(e){
-            var kode_cuti = $(this).val();
+         $("#kode_dinasluar").change(function(e){
+            var kode_dinasluar = $(this).val();
             var tgl_izin_dari = $("tgl_izin_dari").val();
             if(tgl_izin_dari==""){
                 Swal.fire({
                         title: 'Oops!',
-                        text: 'Tanggal cuti harus diisi',
+                        text: 'Tanggal dinas luar harus diisi',
                         icon: 'warning'
                     });
-                    $("#kode_cuti").val("");
+                    $("#kode_dinasluar").val("");
             }else{
                 $.ajax({
-                url:'/izincuti/getmaxcuti',
+                url:'/izindinasluar/getmaxdinasluar',
                 type:'POST',
                 data:{
                     _token:"{{ csrf_token() }}",
-                    kode_cuti:kode_cuti,
+                    kode_dinasluar:kode_dinasluar,
                     tgl_izin_dari:tgl_izin_dari
                 },
                 cache:false,
                 success:function(respond){
-                    $("#max_cuti").val(respond);
-                    $("#info_max_cuti").html("<b>Maksimal cuti yg dapat diambil adalah: "+respond+ " hari</b>");
+                    $("#max_dinasluar").val(respond);
+                    $("#info_max_dinasluar").html("<b>Maksimal dinas luar yg dapat diambil adalah: "+respond+ " hari</b>");
                 }
             });
             }

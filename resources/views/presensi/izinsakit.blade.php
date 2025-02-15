@@ -8,7 +8,7 @@
           <!-- Page pre-title -->
           
           <h2 class="page-title">
-            Data Izin/Sakit
+          Data Dinas luar/Cuti/Izin
           </h2>
         </div>
         </div>
@@ -125,7 +125,7 @@
                                 </svg>
                                 </span>
                                 <input type="text" value="{{ Request('nama_lengkap') }}" id="nama_lengkap" class="form-control" 
-                                placeholder="Nama Karyawan" name="nama_lengkap">
+                                placeholder="Nama Pegawai" name="nama_lengkap">
                               </div>
                         </div>
                         @role('administrator','user')
@@ -227,6 +227,10 @@
                                     Izin
                                 @elseif($d->status=="s")
                                     Sakit
+                                @elseif($d->status=="d")
+                                    Dinas luar
+                                @elseif($d->status=="p")
+                                    Izin 
                                 @elseif($d->status=="c")
                                     Cuti      
                                 @endif
@@ -300,7 +304,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Izin/Sakit</h5>
+          <h5 class="modal-title">Dinas luar/Cuti/Izin</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">

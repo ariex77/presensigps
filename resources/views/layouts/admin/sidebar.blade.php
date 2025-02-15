@@ -161,7 +161,7 @@
                 Data Master
               </span>
             </a>
-            <div class="dropdown-menu {{ request()->is(['karyawan','departemen', 'cabang', 'cuti']) ? 'show' : '' }}">
+            <div class="dropdown-menu {{ request()->is(['karyawan','departemen', 'cabang', 'cuti','dinasluar','izinpenting']) ? 'show' : '' }}">
               <div class="dropdown-menu-columns">
                 <div class="dropdown-menu-column">
                   @role('administrator|admin bidang', 'user')
@@ -182,6 +182,14 @@
                   <a class="dropdown-item {{ request()->is(['cuti']) ? 'active' : '' }}" 
                     href="/cuti">
                     Cuti 
+                  </a>
+                  <a class="dropdown-item {{ request()->is(['dinasluar']) ? 'active' : '' }}" 
+                    href="/dinasluar">
+                    Dinas Luar
+                  </a>
+                  <a class="dropdown-item {{ request()->is(['izinpenting']) ? 'active' : '' }}" 
+                    href="/izinpenting">
+                    Izin Alasan Penting
                   </a>
                   @endrole
                 </div>

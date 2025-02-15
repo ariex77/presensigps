@@ -101,10 +101,10 @@
                                             @endphp
                                             <img src="{{ url($path) }}" alt="" class="imaged w48"> 
                                         @else
-                                            <ion-icon name="camera"></ion-icon>
+                                        <ion-icon name="camera-outline"></ion-icon>
                                         @endif
                                     @else
-                                        <ion-icon name="camera"></ion-icon>
+                                    <ion-icon name="camera-outline"></ion-icon>
                                     @endif
                                 </div>
                                 <div class="presencedetail">
@@ -177,10 +177,10 @@
                         <div class="card-body text-center"  style="padding:12px 12px !important; line-height:0.8rem">
                             <span class="badge bg-danger" 
                             style="position: absolute; top:3px; right:10px; font-size:0.6rem; z-index:999">
-                            {{ $rekappresensi->jmlsakit }}</span>
-                            <ion-icon name="medkit-outline" style="font-size: 1.6rem;" class='text-warning mb-1'></ion-icon>
+                            {{ $rekappresensi->jmldinasluar }}</span>
+                            <ion-icon name="car-sport-outline" style="font-size: 1.6rem;" class='text-warning mb-1'></ion-icon>
                             <br>
-                            <span style="font-size:0.8rem; font-weight:500">Sakit</span>
+                            <span style="font-size:0.8rem; font-weight:500">Dinas Luar</span>
                         </div>
                     </div>
                 </div>
@@ -327,6 +327,30 @@
                                 </div>
                                 <div class="datapresensi">
                                     <h3 style="line-height: 2px">SAKIT - {{ $d->kode_izin }}</h3>
+                                    <h4 style="margin: 0px !important">{{ date("d-m-Y", 
+                                    strtotime($d->tgl_presensi)) }}</h4>
+                                    <span>
+                                        {{ $d->keterangan }}
+                                    </span>
+                                    <br>
+                                    <span style="color:blue">
+                                        <ion-icon name="document-attach-outline"></ion-icon>SID
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    @elseif($d->status=="d")
+                    <div class="card mb-1" style="border: 1px solid blue">
+                        <div class="card-body">
+                            <div class="historicontent">
+                                <div class="iconpresensi">
+                                    <ion-icon name="car-sport-outline" style="font-size: 48px"
+                                    class="text-danger"></ion-icon>
+                                </div>
+                                <div class="datapresensi">
+                                    <h3 style="line-height: 2px">DINAS LUAR - {{ $d->kode_izin }}</h3>
                                     <h4 style="margin: 0px !important">{{ date("d-m-Y", 
                                     strtotime($d->tgl_presensi)) }}</h4>
                                     <span>

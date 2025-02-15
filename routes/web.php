@@ -9,7 +9,11 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\CabangController;
 use App\Http\Controllers\IzinabsenController;
 use App\Http\Controllers\IzincutiController;
+use App\Http\Controllers\IzindinasluarController;
 use App\Http\Controllers\CutiController;
+use App\Http\Controllers\DinasluarController;
+use App\Http\Controllers\PentingController;
+use App\Http\Controllers\IzinpentingController;
 use App\Http\Controllers\HariliburController;
 use App\Http\Controllers\IzinsakitController;
 use App\Http\Controllers\UserController;
@@ -76,6 +80,20 @@ Route::middleware(['auth:karyawan'])->group(function () {
     Route::get('/izincuti/{kode_izin}/edit', [IzincutiController::class, 'edit']);
     Route::post('/izincuti/{kode_izin}/update', [IzincutiController::class, 'update']);
     Route::post('/izincuti/getmaxcuti', [IzincutiController::class, 'getmaxcuti']);
+
+    //izin dinas luar
+    Route::get('/izindinasluar', [IzindinasluarController::class, 'create']);
+    Route::post('/izindinasluar/store', [IzindinasluarController::class, 'store']);
+    Route::get('/izindinasluar/{kode_izin}/edit', [IzindinasluarController::class, 'edit']);
+    Route::post('/izindinasluar/{kode_izin}/update', [IzindinasluarController::class, 'update']);
+    Route::post('/izindinasluar/getmaxdinasluar', [IzindinasluarController::class, 'getmaxdinasluar']);
+
+    //izinalasanpenting
+    Route::get('/izinalasanpenting', [IzinpentingController::class, 'create']);
+    Route::post('/izinalasanpenting/store', [IzinpentingController::class, 'store']);
+    Route::get('/izinalasanpenting/{kode_izin}/edit', [IzinpentingController::class, 'edit']);
+    Route::post('/izinalasanpenting/{kode_izin}/update', [IzinpentingController::class, 'update']);
+    Route::post('/izinalasanpenting/getmaxdinasluar', [IzinpentingController::class, 'getmaxdinasluar']);
 
     Route::get('/izin/{kode_izin}/showact', [PresensiController::class, 'showact']);
     Route::get('/izin/{kode_izin}/delete', [PresensiController::class, 'deleteizin']);
@@ -187,14 +205,28 @@ Route::group(['middleware' => ['role:administrator,user']], function () {
     Route::post('/cuti/store', [CutiController::class, 'store']);
     Route::post('/cuti/edit', [CutiController::class, 'edit']);
     Route::post('/cuti/{kode_cuti}/update', [CutiController::class, 'update']);
-    Route::delete('/cuti/{kode_cuti}/delete', [CutiController::class, 'delete']);
+    Route::post('/cuti/{kode_cuti}/delete', [CutiController::class, 'delete']);
+
+    //dinas luar
+    Route::get('/dinasluar', [DinasluarController::class, 'index']);
+    Route::post('/dinasluar/store', [DinasluarController::class, 'store']);
+    Route::post('/dinasluar/edit', [DinasluarController::class, 'edit']);
+    Route::post('/dinasluar/{kode_dinasluar}/update', [DinasluarController::class, 'update']);
+    Route::post('/dinasluar/{kode_dinasluar}/delete', [DinasluarController::class, 'delete']);
+
+    //izinpenting
+    Route::get('/izinpenting', [PentingController::class, 'index']);
+    Route::post('/izinpenting/store', [PentingController::class, 'store']);
+    Route::post('/izinpenting/edit', [PentingController::class, 'edit']);
+    Route::post('/izinpenting/{kode_izinpenting}/update', [PentingController::class, 'update']);
+    Route::post('/izinpenting/{kode_izinpenting}/delete', [PentingController::class, 'delete']);
 });
 
 Route::get('/createrolepermission', function () {
     try {
-        Role::create(['name' => 'admin bidang']);
-        //Permission::create(['name' => 'view-karyawan']);
-        //Permission::create(['name' => 'view-departemen']);
+        Role::create(['name' => 'administrator']);
+        Permission::create(['name' => 'view-karyawan']);
+        Permission::create(['name' => 'view-departemen']);
         echo "Success";
     } catch (\Exception $e) {
         echo "Error";
@@ -213,7 +245,7 @@ Route::get('/give-user-role', function () {
 
 Route::get('/give-role-permission', function () {
     try {
-        $role = Role::findorfail(1);
+        $role = Role::findorfail(5);
         $role->givePermissionTo('view-departemen');
         echo "Success";
     } catch (\Exception $e) {

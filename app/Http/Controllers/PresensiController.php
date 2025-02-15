@@ -379,6 +379,8 @@ class PresensiController extends Controller
         if (!empty($request->bulan) && !empty($request->tahun)) {
             $dataizin = DB::table('pengajuan_izin')
                 ->leftJoin('master_cuti', 'pengajuan_izin.kode_cuti', '=', 'master_cuti.kode_cuti')
+                ->leftJoin('master_dinasluar', 'pengajuan_izin.kode_dinasluar', '=', 'master_dinasluar.kode_dinasluar')
+                ->leftJoin('master_izin', 'pengajuan_izin.kode_izinpenting', '=', 'master_izin.kode_izinpenting')
                 ->orderBy('tgl_izin_dari', 'desc')
                 ->where('nik', $nik)
                 ->whereRaw('MONTH(tgl_izin_dari)="' . $request->bulan . '"')
@@ -387,6 +389,8 @@ class PresensiController extends Controller
         } else {
             $dataizin = DB::table('pengajuan_izin')
                 ->leftJoin('master_cuti', 'pengajuan_izin.kode_cuti', '=', 'master_cuti.kode_cuti')
+                ->leftJoin('master_dinasluar', 'pengajuan_izin.kode_dinasluar', '=', 'master_dinasluar.kode_dinasluar')
+                ->leftJoin('master_izin', 'pengajuan_izin.kode_izinpenting', '=', 'master_izin.kode_izinpenting')
                 ->orderBy('tgl_izin_dari', 'desc')
                 ->where('nik', $nik)->limit(5)->orderBy('tgl_izin_dari', 'desc')
                 ->get();

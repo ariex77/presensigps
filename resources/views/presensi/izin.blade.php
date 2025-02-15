@@ -8,7 +8,7 @@
                 <ion-icon name="chevron-back-outline"></ion-icon>
             </a>
         </div>
-        <div class="pagetitle">Data Izin/Sakit</div>
+        <div class="pagetitle">Data Dinas luar/Cuti/Izin</div>
         <div class="right"></div>
     </div>
     <style>
@@ -104,6 +104,10 @@
                 $status ="Sakit";
             }elseif($d->status == "c"){
                 $status ="Cuti";
+            }elseif($d->status == "d"){
+                $status ="Dinas Luar";
+            }elseif($d->status == "p"){
+                $status ="Izin Alasan Penting";
             }else{
                 $status ="Not found";
             }
@@ -117,6 +121,10 @@
                             <ion-icon name="document-outline" style="font-size: 48px; color:blue"></ion-icon>
                         @elseif($d->status=="s")
                         <ion-icon name="medkit-outline" style="font-size: 48px; color:rgb(255, 0, 60)"></ion-icon>
+                        @elseif($d->status=="d")
+                        <ion-icon name="car-sport-outline" style="font-size: 48px; color:rgb(0, 255, 170)"></ion-icon>
+                        @elseif($d->status=="p")
+                        <ion-icon name="walk-outline" style="font-size: 48px; color:rgb(0, 255, 170)"></ion-icon>
                         @elseif($d->status=="c")
                         <ion-icon name="calendar-number-outline" style="font-size: 48px; color:rgb(0, 255, 170)"></ion-icon>
                         @endif
@@ -134,10 +142,16 @@
                             <br>
                             @if ($d->status=="c")
                                 <span class="badge bg-warning">{{ $d->nama_cuti }}</span>
-                            @endif    
+                            @endif
+                            @if ($d->status=="d")
+                                <span class="badge bg-warning">{{ $d->nama_dinasluar }}</span>
+                            @endif
+                            @if ($d->status=="p")
+                                <span class="badge bg-warning">{{ $d->nama_izinpenting }}</span>
+                            @endif 
                             @if (!empty($d->doc_sid))
                             <span style="color:blue">
-                                <ion-icon name="document-attach-outline"></ion-icon>Lihat SID
+                                <ion-icon name="document-attach-outline"></ion-icon>Lihat SPT
                             </span>
                             @endif
                         </p>
@@ -157,7 +171,7 @@
             </div>
         </div>
 
-        {{--    <ul class="listview image-listview">
+        {{-- <ul class="listview image-listview">
                 <li>
                     <div class="item">
                         <div class="in">
@@ -193,9 +207,17 @@
 			<ion-icon name="document-outline" role="img" class="md-hydrated" aria-label="videocam outline"></ion-icon>
 			<p>Sakit</p>
 		</a>
-		<a class="dropdown-item bg-primary" href="/izincuti">
+		<a class="dropdown-item bg-primary" href="/izindinasluar">
+			<ion-icon name="document-outline" role="img" class="md-hydrated" aria-label="videocam outline"></ion-icon>
+			<p>Dinas Luar</p>
+		</a>
+        <a class="dropdown-item bg-primary" href="/izincuti">
 			<ion-icon name="document-outline" role="img" class="md-hydrated" aria-label="videocam outline"></ion-icon>
 			<p>Cuti</p>
+		</a>
+        <a class="dropdown-item bg-primary" href="/izinalasanpenting">
+			<ion-icon name="document-outline" role="img" class="md-hydrated" aria-label="videocam outline"></ion-icon>
+			<p>Izin Alasan Penting</p>
 		</a>
 	</div>
 </div>
